@@ -1,0 +1,33 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+*.out
+
+# Go build cache
+.cache/go-build/
+
+# IDE and editor specific files
+.idea/
+.vscode/
+*.swp
+*.bak
+*.swo
+
+# Dependency directories (Go Modules)
+# Depending on your project structure, you might want to ignore the vendor directory
+# if you are using Go Modules and prefer to rely on `go mod download`
+# to fetch dependencies.
+vendor/
+
+# Environment-specific or local configuration files
+.env
+.local/
+
+# Log files
+*.log
+
