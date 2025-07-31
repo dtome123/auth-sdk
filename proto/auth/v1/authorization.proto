@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "./v1;auth";
+
+service AuthorizationService {
+  // ========= Permission APIs ==========
+  rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse);
+  rpc HasPermission(HasPermissionRequest) returns (HasPermissionResponse);
+  rpc CheckPermissions(CheckPermissionsRequest) returns (CheckPermissionsResponse);
+  rpc ListPermissionPaths(ListPermissionPathsRequest) returns (ListPermissionPathsResponse);
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
+
+  rpc MigratePermissions(MigratePermissionsRequest) returns (MigratePermissionsResponse);
+
+  // ========= Role APIs ===============
+  rpc AssignRolesToUser(AssignRolesToUserRequest) returns (AssignRolesToUserResponse);
+  rpc GetUserRoles(GetUserRolesRequest) returns (GetUserRolesResponse);
+
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse);
+  rpc ListRole(ListRoleRequest) returns (ListRoleResponse);
+}
+
+// ===================== Type ======================
+
+message ActionResource {
+  string resource = 1;
+  string action   = 2;
+}
+
+message Permission {
+  string                  id                 = 1;
+  string                  name               = 2;
+  string                  domain             = 3;
+  string                  resource           = 4;
+  string                  action             = 5;
+  repeated ActionResource implied_by_actions = 6;
+  string                  description        = 7; // optional description for UI
+}
+
+message Role {
+  string              id             = 1;
+  string              name           = 2;
+  repeated string     permission_ids = 3;
+  repeated Permission permissions    = 4;
+  string              description    = 5; // optional description for UI
+  map<string, string> scope          = 6;
+}
+
+enum RouteScope {
+  ROUTE_SCOPE_UNSPECIFIED   = 0;
+  ROUTE_SCOPE_PUBLIC        = 1;
+  ROUTE_SCOPE_AUTHENTICATED = 2;
+  ROUTE_SCOPE_AUTHORIZED    = 3;
+}
+
+message PermissionPath {
+  string     id       = 1;
+  string     domain   = 2; // Added domain for modular grouping
+  string     path     = 3;
+  string     resource = 4;
+  string     action   = 5;
+  RouteScope type     = 6;
+}
+
+message PageRequest {
+  int64 page_number = 1;
+  int64 page_size   = 2;
+}
+
+message PageResponse { int64 total_page = 1; }
+
+message StringList { repeated string values = 1; }
+
+// ===================== Permission ======================
+
+message MigratePermissionsRequest {
+  repeated Permission     permissions = 1;
+  repeated PermissionPath paths       = 2;
+}
+
+message MigratePermissionsResponse {}
+
+message GetUserPermissionsRequest { string user_id = 1; }
+
+message GetUserPermissionsResponse { repeated Permission permissions = 1; }
+
+message HasPermissionRequest {
+  string user_id  = 1;
+  string resource = 2;
+  string action   = 3;
+}
+
+message HasPermissionResponse { bool allowed = 1; }
+
+message CheckPermissionsRequest {
+  string                  user_id = 1;
+  repeated ActionResource checks  = 2; // list of resource+action to check
+}
+
+message CheckPermissionsResponse {
+  map<string, bool> results = 1; // key = "resource:action", value = allowed
+}
+
+message ListPermissionPathsRequest {
+  message Filter {
+    string          keyword = 2;
+    repeated string domains = 3;
+  }
+  Filter filter = 1;
+}
+
+message ListPermissionPathsResponse { repeated PermissionPath paths = 1; }
+
+message ListPermissionsRequest {
+  message Filter {
+    string          keyword = 2;
+    repeated string domains = 3;
+  }
+  PageRequest pagination = 1;
+  Filter      filter     = 2;
+}
+
+message ListPermissionsResponse { repeated Permission permissions = 1; }
+
+// ===================== Role ======================
+
+message CreateRoleRequest {
+  string          name           = 1;
+  repeated string permission_ids = 2;
+  string          description    = 3;
+}
+
+message CreateRoleResponse { string id = 1; }
+
+message UpdateRoleRequest {
+  string          id             = 1;
+  string          name           = 2;
+  repeated string permission_ids = 3;
+  string          description    = 4;
+}
+
+message UpdateRoleResponse {}
+
+message AssignRolesToUserRequest {
+  string          user_id  = 1;
+  repeated string role_ids = 2;
+}
+
+message AssignRolesToUserResponse {}
+
+message GetUserRolesRequest { string user_id = 1; }
+
+message GetUserRolesResponse { repeated Role roles = 1; }
+
+message ListRoleRequest {
+  message Filter {
+    string                  keyword = 2;
+    map<string, StringList> scope   = 3;
+  }
+
+  PageRequest pagination = 1;
+  Filter      filter     = 2;
+}
+
+message ListRoleResponse {
+  repeated Role roles      = 1;
+  PageResponse  pagination = 2;
+}

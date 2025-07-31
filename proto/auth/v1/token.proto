@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "./v1;auth";
+
+import "google/protobuf/timestamp.proto";
+
+service TokenService {
+  rpc Token(TokenRequest) returns (TokenResponse);
+  rpc Sign(SignRequest) returns (SignResponse);
+  rpc Refresh(RefreshRequest) returns (RefreshResponse);
+}
+
+////////////////////////////////////// REQUEST //////////////////////////////
+
+message SignRequest {
+  string user_id   = 1;
+  string user_type = 2;
+  string device_id = 3;
+  string metadata  = 4;
+}
+
+message RefreshRequest { string refresh_token = 1; }
+
+message TokenRequest {
+  string grant_type            = 1;
+  string client_assertion_type = 2;
+  string client_assertion      = 3;
+}
+
+///////////////////////////////////// RESPONSE //////////////////////////////
+
+message SignResponse {
+  string                    access_token  = 1;
+  string                    refresh_token = 2;
+  int64                     expires_in    = 3; // seconds
+  google.protobuf.Timestamp expires_at    = 4;
+}
+
+message RefreshResponse {
+  string                    access_token  = 1;
+  string                    refresh_token = 2;
+  int64                     expires_in    = 3;
+  google.protobuf.Timestamp expires_at    = 4;
+}
+
+message TokenResponse {
+  string access_token = 1;
+  string token_type   = 2;
+  int64  expires_in   = 3;
+}

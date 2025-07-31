@@ -30,4 +30,5 @@ vendor/
 
 # Log files
 *.log
-
+node_modules
+cmd

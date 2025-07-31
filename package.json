@@ -1,0 +1,21 @@
+{
+    "dependencies": {
+        "grpc_tools_node_protoc_ts": "^5.3.3",
+        "grpc-server-reflection": "^0.1.5",
+        "grpc-tools": "^1.13.0",
+        "grpc-web": "1.5.0",
+        "protoc-gen-grpc": "^3.0.0",
+        "ts-protoc-gen": "^0.15.0"
+    },
+    "name": "auth-sdk",
+    "description": "### How to install: - Make sure \"protobuf\" has been installed on your machine. [link](https://github.com/golang/protobuf) - Run:     `go get google.golang.org/grpc/cmd/protoc-gen-go-grpc`     `go install google.golang.org/grpc/cmd/protoc-gen-go-grpc` - See [link](https://github.com/grpc/grpc-web) to install protoc-gen-grpc-web",
+    "version": "1.0.1",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git"
+    },
+    "author": "",
+    "license": "ISC"
+}

@@ -1,40 +1,74 @@
 package jwtutils
 
 import (
+	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
-// ExtractUserID extracts the user ID from a JWT token string by decoding its payload.
-// It looks for "sub" or "user_id" claims.
-func ExtractUserID(tokenString string, key string) (string, error) {
+// Extract extracts claims from a JWT token string.
+// If keys are provided, only those claims are returned.
+func Extract(tokenString string, keys ...string) (Claims, error) {
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != 3 {
-		return "", fmt.Errorf("invalid token format")
+		return nil, errors.New("invalid token format: must have 3 parts")
 	}
 
-	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	payloadSegment := parts[1]
+
+	// Ensure padding for base64 decoding
+	if m := len(payloadSegment) % 4; m != 0 {
+		payloadSegment += strings.Repeat("=", 4-m)
+	}
+
+	payloadBytes, err := base64.URLEncoding.DecodeString(payloadSegment)
 	if err != nil {
-		return "", fmt.Errorf("failed to decode token payload: %w", err)
+		return nil, fmt.Errorf("failed to decode base64 payload: %w", err)
 	}
 
-	var claims map[string]interface{}
-	if err := json.Unmarshal(payload, &claims); err != nil {
-		return "", fmt.Errorf("failed to unmarshal token payload: %w", err)
+	var rawClaims jwt.MapClaims
+	if err := json.Unmarshal(payloadBytes, &rawClaims); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON payload: %w", err)
+	}
+	claims := NewClaims(rawClaims)
+
+	// Return all claims if no keys specified
+	if len(keys) == 0 {
+		return claims, nil
 	}
 
-	if key != "" {
-		if userID, ok := claims[key].(string); ok {
-			return userID, nil
+	// Filter claims by keys
+	extract := make(Claims, len(keys))
+	for _, key := range keys {
+		if value, exists := claims[key]; exists {
+			extract[key] = value
 		}
 	}
 
-	if userID, ok := claims["sub"].(string); ok {
-		return userID, nil
-	}
+	return extract, nil
+}
 
-	return "", errors.New("user ID not found in token claims")
+func RS256KeyFunc(pubKey *rsa.PublicKey) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
+		// Ensure token is signed with RS256
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok || token.Method.Alg() != jwt.SigningMethodRS256.Alg() {
+			return nil, errors.New("unexpected signing method, expected RS256")
+		}
+		return pubKey, nil
+	}
+}
+
+func HS256KeyFunc(secret []byte) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
+		// Ensure token is signed with HS256
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok || token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, errors.New("unexpected signing method, expected HS256")
+		}
+		return secret, nil
+	}
 }
