@@ -82,7 +82,8 @@ func NewOauthInterceptor(audience string, verifier jwt.JWTVerifier, opts ...Oaut
 func (o *OauthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		rule := o.matchMethod(info.FullMethod)
-		if rule != nil && rule.Skip {
+
+		if rule == nil || rule.Skip {
 			return handler(ctx, req)
 		}
 
@@ -101,7 +102,7 @@ func (o *OauthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.Un
 		}
 
 		combinedOpts := append([]jwt.ValidateOption{}, opts...)
-		if rule != nil && len(rule.ValidateOptions) > 0 {
+		if len(rule.ValidateOptions) > 0 {
 			combinedOpts = append(combinedOpts, rule.ValidateOptions...)
 		}
 
