@@ -1,28 +1,25 @@
-package jwtutils
+package token
 
 import (
 	"time"
+
+	"github.com/dtome123/auth-sdk/jwt"
 )
 
-// BearerToken contains both access and refresh tokens and expiry metadata.
-type BearerToken struct {
-	AccessToken  string
-	RefreshToken string
-	ExpiresIn    int32
-	ExpiresAt    time.Time
-}
+// ======================
+// JWT Token Builder
+// ======================
 
-// jwtTokenBuilder implements TokenBuilder using a JWT signer.
-type jwtTokenBuilder struct {
-	claims     Claims
+type builder struct {
+	claims     jwt.Claims
 	accessTTL  time.Duration
 	refreshTTL time.Duration
-	signer     Signer
+	signer     jwt.Signer
 }
 
 // NewTokenBuilder creates a new builder for BearerToken.
-func NewTokenBuilder(claims Claims, accessTTL, refreshTTL time.Duration, signer Signer) TokenBuilder {
-	return &jwtTokenBuilder{
+func NewTokenBuilder(claims jwt.Claims, accessTTL, refreshTTL time.Duration, signer jwt.Signer) jwt.TokenBuilder {
+	return &builder{
 		claims:     claims,
 		accessTTL:  accessTTL,
 		refreshTTL: refreshTTL,
@@ -31,18 +28,18 @@ func NewTokenBuilder(claims Claims, accessTTL, refreshTTL time.Duration, signer 
 }
 
 // Build generates both access and refresh tokens.
-func (b *jwtTokenBuilder) Build() (BearerToken, error) {
+func (b *builder) Build() (jwt.BearerToken, error) {
 	accessToken, err := b.signer.Sign(b.claims, b.accessTTL)
 	if err != nil {
-		return BearerToken{}, err
+		return jwt.BearerToken{}, err
 	}
 
 	refreshToken, err := b.signer.Sign(b.claims, b.refreshTTL)
 	if err != nil {
-		return BearerToken{}, err
+		return jwt.BearerToken{}, err
 	}
 
-	return BearerToken{
+	return jwt.BearerToken{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    int32(b.accessTTL.Seconds()),

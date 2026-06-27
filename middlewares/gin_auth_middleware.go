@@ -3,34 +3,37 @@ package middlewares
 import (
 	"errors"
 	"strings"
-	"time"
 
-	"github.com/dtome123/auth-sdk/jwtutils"
+	"github.com/dtome123/auth-sdk/assertion"
+	"github.com/dtome123/auth-sdk/jwt"
 	"github.com/gin-gonic/gin"
 )
 
 // === Middleware struct ===
 
 type OauthMiddleware struct {
-	audience         string
-	verifier         jwtutils.JWTVerifier
-	replayChecker    jwtutils.ReplayChecker
-	attachIdentityFn func(c *gin.Context, claims jwtutils.Claims)
-	tokenHeader      string // default: "Authorization"
-	tokenScheme      string // default: "Bearer"
+	audience           string
+	verifier           jwt.JWTVerifier
+	replayChecker      assertion.ReplayChecker
+	attachIdentityFn   func(c *gin.Context, claims jwt.Claims)
+	tokenHeader        string // default: "Authorization"
+	tokenScheme        string // default: "Bearer"
+	basicAuthAccounts  map[string]string
+	basicAuthValidator func(username, password string) (jwt.Claims, bool)
+	cookieName         string // default: "access_token"
 }
 
 // === Functional Options ===
 
 type OauthMiddlewareOption func(*OauthMiddleware)
 
-func WithReplayChecker(ttl time.Duration) OauthMiddlewareOption {
+func WithReplayChecker(checker assertion.ReplayChecker) OauthMiddlewareOption {
 	return func(o *OauthMiddleware) {
-		o.replayChecker = jwtutils.NewMemoryReplayChecker(ttl)
+		o.replayChecker = checker
 	}
 }
 
-func WithIdentityInjector(fn func(*gin.Context, jwtutils.Claims)) OauthMiddlewareOption {
+func WithIdentityInjector(fn func(*gin.Context, jwt.Claims)) OauthMiddlewareOption {
 	return func(o *OauthMiddleware) {
 		o.attachIdentityFn = fn
 	}
@@ -48,11 +51,29 @@ func WithTokenScheme(scheme string) OauthMiddlewareOption {
 	}
 }
 
+func WithBasicAuthAccounts(accounts map[string]string) OauthMiddlewareOption {
+	return func(o *OauthMiddleware) {
+		o.basicAuthAccounts = accounts
+	}
+}
+
+func WithBasicAuthValidator(fn func(username, password string) (jwt.Claims, bool)) OauthMiddlewareOption {
+	return func(o *OauthMiddleware) {
+		o.basicAuthValidator = fn
+	}
+}
+
+func WithCookieName(name string) OauthMiddlewareOption {
+	return func(o *OauthMiddleware) {
+		o.cookieName = name
+	}
+}
+
 // === Constructor ===
 
 func NewOauthMiddleware(
 	audience string,
-	verifier jwtutils.JWTVerifier,
+	verifier jwt.JWTVerifier,
 	opts ...OauthMiddlewareOption,
 ) *OauthMiddleware {
 	o := &OauthMiddleware{
@@ -60,6 +81,7 @@ func NewOauthMiddleware(
 		verifier:    verifier,
 		tokenHeader: "Authorization",
 		tokenScheme: "Bearer",
+		cookieName:  "access_token",
 	}
 	for _, opt := range opts {
 		opt(o)
@@ -67,41 +89,67 @@ func NewOauthMiddleware(
 	return o
 }
 
-// === Middleware for service token ===
-
-func (o *OauthMiddleware) ServiceMiddleware() gin.HandlerFunc {
-	return o.middlewareWithVerifier(func(token string) (jwtutils.Claims, error) {
-		return verifyServiceToken(o.verifier, token, o.audience, o.replayChecker)
-	})
-}
-
-// === Middleware for user token ===
-
-func (o *OauthMiddleware) UserMiddleware() gin.HandlerFunc {
-	return o.middlewareWithVerifier(func(token string) (jwtutils.Claims, error) {
-		return verifyUserToken(o.verifier, token, o.audience)
-	})
-}
-
 // === Core verification middleware logic ===
 
-func (o *OauthMiddleware) middlewareWithVerifier(
-	verifyFn func(tokenStr string) (jwtutils.Claims, error),
-) gin.HandlerFunc {
+func (o *OauthMiddleware) VerifyToken(opts ...jwt.ValidateOption) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := o.extractToken(c)
-		if err != nil {
-			c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
-			return
+		var claims jwt.Claims
+
+		scheme, payload, extractErr := o.extractTokenAndScheme(c)
+		if extractErr == nil {
+			switch scheme {
+			case "basic":
+				if c.Request == nil {
+					c.AbortWithStatusJSON(401, gin.H{"error": "missing request context"})
+					return
+				}
+				user, pass, ok := c.Request.BasicAuth()
+				if !ok {
+					c.AbortWithStatusJSON(401, gin.H{"error": "invalid basic auth header"})
+					return
+				}
+				cClaims, valid := o.validateBasicAuth(user, pass)
+				if !valid {
+					c.AbortWithStatusJSON(401, gin.H{"error": "invalid basic auth credentials"})
+					return
+				}
+				claims = cClaims
+
+			default:
+				if payload == "" {
+					c.AbortWithStatusJSON(401, gin.H{"error": "empty token"})
+					return
+				}
+				cClaims, err := verifyTokenByMode(o.verifier, payload, o.audience, o.replayChecker, opts)
+				if err != nil {
+					c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
+					return
+				}
+				claims = cClaims
+			}
+		} else {
+			// Fallback to Cookie Auth if tokenHeader is missing
+			if o.cookieName != "" {
+				cookieToken, cookieErr := c.Cookie(o.cookieName)
+				if cookieErr == nil && cookieToken != "" {
+					cClaims, err := verifyTokenByMode(o.verifier, cookieToken, o.audience, o.replayChecker, opts)
+					if err == nil {
+						claims = cClaims
+					} else {
+						c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
+						return
+					}
+				} else {
+					c.AbortWithStatusJSON(401, gin.H{"error": extractErr.Error()})
+					return
+				}
+			} else {
+				c.AbortWithStatusJSON(401, gin.H{"error": extractErr.Error()})
+				return
+			}
 		}
 
-		claims, err := verifyFn(tokenStr)
-		if err != nil {
-			c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
-			return
-		}
-
-		if o.attachIdentityFn != nil {
+		if o.attachIdentityFn != nil && claims != nil {
 			o.attachIdentityFn(c, claims)
 		}
 
@@ -109,26 +157,35 @@ func (o *OauthMiddleware) middlewareWithVerifier(
 	}
 }
 
-// === Token extractor (header + scheme insensitive) ===
+func (o *OauthMiddleware) validateBasicAuth(user, pass string) (jwt.Claims, bool) {
+	if o.basicAuthValidator != nil {
+		return o.basicAuthValidator(user, pass)
+	}
+	if len(o.basicAuthAccounts) > 0 {
+		expectedPass, exists := o.basicAuthAccounts[user]
+		if exists && expectedPass == pass {
+			claims := jwt.Claims{
+				"sub": jwt.Value{Value: user},
+			}
+			return claims, true
+		}
+	}
+	return nil, false
+}
 
-func (o *OauthMiddleware) extractToken(c *gin.Context) (string, error) {
+// === Header & Scheme extractor ===
+
+func (o *OauthMiddleware) extractTokenAndScheme(c *gin.Context) (scheme string, payload string, err error) {
 	rawHeader := c.GetHeader(o.tokenHeader)
 	if rawHeader == "" {
-		return "", errors.New("missing token header: " + o.tokenHeader)
+		return "", "", errors.New("missing token header: " + o.tokenHeader)
 	}
 
-	if o.tokenScheme == "" {
-		return strings.TrimSpace(rawHeader), nil
+	rawTrimmed := strings.TrimSpace(rawHeader)
+	parts := strings.SplitN(rawTrimmed, " ", 2)
+	if len(parts) == 1 {
+		return strings.ToLower(o.tokenScheme), parts[0], nil
 	}
 
-	prefix := o.tokenScheme + " "
-	if !strings.HasPrefix(strings.ToLower(rawHeader), strings.ToLower(prefix)) {
-		return "", errors.New("invalid token scheme, expected: " + o.tokenScheme)
-	}
-
-	token := strings.TrimSpace(rawHeader[len(prefix):])
-	if token == "" {
-		return "", errors.New("empty token after scheme")
-	}
-	return token, nil
+	return strings.ToLower(parts[0]), strings.TrimSpace(parts[1]), nil
 }

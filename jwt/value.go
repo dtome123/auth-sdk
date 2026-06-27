@@ -1,4 +1,4 @@
-package jwtutils
+package jwt
 
 import (
 	"fmt"
@@ -6,6 +6,11 @@ import (
 	"strconv"
 )
 
+// ======================
+// Value Types
+// ======================
+
+// Value wraps a raw claim value providing safe type conversions.
 type Value struct {
 	Value interface{}
 }
@@ -119,10 +124,26 @@ func (v Value) AsBool() bool {
 	return false
 }
 
+// AsStringSlice returns the value as a slice of strings.
 func (v Value) AsStringSlice() []string {
 	switch val := v.Value.(type) {
 	case []string:
 		return val
+	case []interface{}:
+		res := make([]string, 0, len(val))
+		for _, item := range val {
+			if s, ok := item.(string); ok {
+				res = append(res, s)
+			} else if item != nil {
+				res = append(res, fmt.Sprintf("%v", item))
+			}
+		}
+		return res
+	case string:
+		if val == "" {
+			return nil
+		}
+		return []string{val}
 	}
 	return nil
 }
@@ -132,6 +153,10 @@ func (v Value) IsType(t any) bool {
 	return reflect.TypeOf(v.Value) == reflect.TypeOf(t)
 }
 
+// IsArray checks if value is a slice.
 func (v Value) IsArray() bool {
+	if v.Value == nil {
+		return false
+	}
 	return reflect.TypeOf(v.Value).Kind() == reflect.Slice
 }

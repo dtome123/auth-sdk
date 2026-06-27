@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	authPb "github.com/dtome123/auth-sdk/api/go/auth/v1"
-	"github.com/dtome123/auth-sdk/jwtutils"
+	"github.com/dtome123/auth-sdk/jwt"
 	"github.com/dtome123/auth-sdk/types"
 )
 
@@ -23,7 +23,7 @@ type impl struct {
 	authSvcAud   string
 	assertionTTL time.Duration
 
-	clientServiceSigner jwtutils.Signer
+	clientServiceSigner jwt.Signer
 	clientOpts          []grpc.DialOption
 	conn                *grpc.ClientConn
 }
@@ -76,7 +76,7 @@ func NewClient(config ClientConfig, opts ...Option) (Client, error) {
 // generateClientAssertion creates the signed JWT client assertion token.
 
 func (c *impl) Sign(ctx context.Context, req *authPb.SignRequest) (*authPb.SignResponse, error) {
-	clientAssertion, err := jwtutils.GenerateClientAssertion(c.clientServiceSigner, c.iss, c.sub, c.authSvcAud, c.assertionTTL)
+	clientAssertion, err := jwt.GenerateClientAssertion(c.clientServiceSigner, c.iss, c.sub, c.authSvcAud, c.assertionTTL)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (c *impl) Sign(ctx context.Context, req *authPb.SignRequest) (*authPb.SignR
 }
 
 func (c *impl) Refresh(ctx context.Context, req *authPb.RefreshRequest) (*authPb.RefreshResponse, error) {
-	clientAssertion, err := jwtutils.GenerateClientAssertion(c.clientServiceSigner, c.iss, c.sub, c.authSvcAud, c.assertionTTL)
+	clientAssertion, err := jwt.GenerateClientAssertion(c.clientServiceSigner, c.iss, c.sub, c.authSvcAud, c.assertionTTL)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (c *impl) Refresh(ctx context.Context, req *authPb.RefreshRequest) (*authPb
 }
 
 func (c *impl) Migration(ctx context.Context, seeding types.PermissionSeeding) error {
-	clientAssertion, err := jwtutils.GenerateClientAssertion(c.clientServiceSigner, c.iss, c.sub, c.authSvcAud, c.assertionTTL)
+	clientAssertion, err := jwt.GenerateClientAssertion(c.clientServiceSigner, c.iss, c.sub, c.authSvcAud, c.assertionTTL)
 	if err != nil {
 		return err
 	}

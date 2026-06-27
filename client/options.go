@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/dtome123/auth-sdk/jwtutils"
+	"github.com/dtome123/auth-sdk/jwt"
 	"github.com/dtome123/auth-sdk/pkgs/crypto"
 	"google.golang.org/grpc"
 )
@@ -18,7 +18,7 @@ func WithHMACClientAssertion(secret string, assertionTTL time.Duration) Option {
 			return errors.New("client secret must not be nil for client assertion")
 		}
 		c.assertionTTL = assertionTTL
-		c.clientServiceSigner = jwtutils.NewHMACSigner([]byte(secret))
+		c.clientServiceSigner = jwt.NewHMACSigner([]byte(secret))
 		return nil
 	}
 }
@@ -29,7 +29,7 @@ func WithRS256ClientAssertion(privKey *rsa.PrivateKey, assertionTTL time.Duratio
 			return errors.New("client private key must not be nil for client assertion")
 		}
 		c.assertionTTL = assertionTTL
-		c.clientServiceSigner = jwtutils.NewRS256SignerFromKey(privKey)
+		c.clientServiceSigner = jwt.NewRS256SignerFromKey(privKey)
 		return nil
 	}
 }
@@ -44,7 +44,7 @@ func WithRS256ClientAssertionFromPath(privKeyPath string, assertionTTL time.Dura
 			return err
 		}
 		c.assertionTTL = assertionTTL
-		c.clientServiceSigner = jwtutils.NewRS256SignerFromKey(key)
+		c.clientServiceSigner = jwt.NewRS256SignerFromKey(key)
 		return nil
 	}
 }
@@ -59,7 +59,7 @@ func WithClientAssertionFromString(privKeyStr string, assertionTTL time.Duration
 			return err
 		}
 		c.assertionTTL = assertionTTL
-		c.clientServiceSigner = jwtutils.NewRS256SignerFromKey(key)
+		c.clientServiceSigner = jwt.NewRS256SignerFromKey(key)
 		return nil
 	}
 }

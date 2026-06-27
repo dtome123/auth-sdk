@@ -1,53 +1,46 @@
 package middlewares
 
 import (
-	"github.com/dtome123/auth-sdk/jwtutils"
+	"fmt"
+
+	"github.com/dtome123/auth-sdk/assertion"
+	"github.com/dtome123/auth-sdk/jwt"
 )
 
-// verifyServiceToken verifies a JWT token and returns claims
-// and applies replay checks for service tokens.
-func verifyServiceToken(
-	verifier jwtutils.JWTVerifier,
+// verifyTokenByMode verifies a token string using the verifier and validates claims based on AuthMode.
+func verifyTokenByMode(
+	verifier jwt.JWTVerifier,
 	token string,
 	expectedAud string,
-	replayChecker jwtutils.ReplayChecker,
-) (jwtutils.Claims, error) {
+	replayChecker assertion.ReplayChecker,
+	extraValidateOptions []jwt.ValidateOption,
+) (jwt.Claims, error) {
+
+	if verifier == nil {
+		return nil, fmt.Errorf("jwt verifier is nil")
+	}
+
 	claims, err := verifier.Verify(token)
 	if err != nil {
 		return nil, err
 	}
 
-	oauthClaims := jwtutils.NewOauthClaims(claims)
-
-	err = oauthClaims.Validate(
-		jwtutils.WithExpectedAudience(expectedAud),
-		jwtutils.WithReplayChecker(replayChecker),
-	)
-	if err != nil {
-		return nil, err
+	var opts []jwt.ValidateOption
+	if expectedAud != "" {
+		opts = append(opts, jwt.WithExpectedAudience(expectedAud))
 	}
 
-	return claims, nil
-}
-
-func verifyUserToken(
-	verifier jwtutils.JWTVerifier,
-	token string,
-	expectedAud string,
-) (jwtutils.Claims, error) {
-	claims, err := verifier.Verify(token)
-	if err != nil {
-		return nil, err
+	if replayChecker != nil {
+		opts = append(opts, jwt.WithReplayChecker(replayChecker))
 	}
 
-	oauthClaims := jwtutils.NewOauthClaims(claims)
+	opts = append(opts, extraValidateOptions...)
 
-	err = oauthClaims.Validate(
-		jwtutils.WithExpectedAudience(expectedAud),
-	)
-
-	if err != nil {
-		return nil, err
+	if len(opts) > 0 {
+		oauthClaims := jwt.NewOauthClaims(claims)
+		if err := oauthClaims.Validate(opts...); err != nil {
+			return nil, err
+		}
 	}
 
 	return claims, nil
