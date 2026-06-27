@@ -120,7 +120,7 @@ func (o *OauthMiddleware) VerifyToken(opts ...jwt.ValidateOption) gin.HandlerFun
 					c.AbortWithStatusJSON(401, gin.H{"error": "empty token"})
 					return
 				}
-				cClaims, err := verifyTokenByMode(o.verifier, payload, o.audience, o.replayChecker, opts)
+				cClaims, err := verifyToken(o.verifier, payload, o.audience, o.replayChecker, opts)
 				if err != nil {
 					c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
 					return
@@ -132,7 +132,7 @@ func (o *OauthMiddleware) VerifyToken(opts ...jwt.ValidateOption) gin.HandlerFun
 			if o.cookieName != "" {
 				cookieToken, cookieErr := c.Cookie(o.cookieName)
 				if cookieErr == nil && cookieToken != "" {
-					cClaims, err := verifyTokenByMode(o.verifier, cookieToken, o.audience, o.replayChecker, opts)
+					cClaims, err := verifyToken(o.verifier, cookieToken, o.audience, o.replayChecker, opts)
 					if err == nil {
 						claims = cClaims
 					} else {

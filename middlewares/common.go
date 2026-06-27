@@ -7,8 +7,8 @@ import (
 	"github.com/dtome123/auth-sdk/jwt"
 )
 
-// verifyTokenByMode verifies a token string using the verifier and validates claims based on AuthMode.
-func verifyTokenByMode(
+// verifyToken verifies a token string using the verifier and validates claims based on AuthMode.
+func verifyToken(
 	verifier jwt.JWTVerifier,
 	token string,
 	expectedAud string,

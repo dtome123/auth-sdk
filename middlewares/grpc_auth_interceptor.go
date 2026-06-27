@@ -79,7 +79,7 @@ func NewOauthInterceptor(audience string, verifier jwt.JWTVerifier, opts ...Oaut
 
 // === Unary Interceptor ===
 
-func (o *OauthInterceptor) UnaryInterceptor(opts ...jwt.ValidateOption) grpc.UnaryServerInterceptor {
+func (o *OauthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		rule := o.matchMethod(info.FullMethod)
 		if rule != nil && rule.Skip {
@@ -105,7 +105,7 @@ func (o *OauthInterceptor) UnaryInterceptor(opts ...jwt.ValidateOption) grpc.Una
 			combinedOpts = append(combinedOpts, rule.ValidateOptions...)
 		}
 
-		claims, err := verifyTokenByMode(o.verifier, payload, o.audience, o.replayChecker, combinedOpts)
+		claims, err := verifyToken(o.verifier, payload, o.audience, o.replayChecker, combinedOpts)
 		if err != nil {
 			return nil, err
 		}
