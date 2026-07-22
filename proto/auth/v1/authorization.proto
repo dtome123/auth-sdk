@@ -79,6 +79,7 @@ message StringList { repeated string values = 1; }
 message MigratePermissionsRequest {
   repeated Permission     permissions = 1;
   repeated PermissionPath paths       = 2;
+  repeated Role           roles       = 3;
 }
 
 message MigratePermissionsResponse {}

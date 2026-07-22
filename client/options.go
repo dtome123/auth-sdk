@@ -7,7 +7,6 @@ import (
 
 	"github.com/dtome123/auth-sdk/jwt"
 	"github.com/dtome123/auth-sdk/pkgs/crypto"
-	"google.golang.org/grpc"
 )
 
 type Option func(*impl) error
@@ -60,13 +59,6 @@ func WithClientAssertionFromString(privKeyStr string, assertionTTL time.Duration
 		}
 		c.assertionTTL = assertionTTL
 		c.clientServiceSigner = jwt.NewRS256SignerFromKey(key)
-		return nil
-	}
-}
-
-func WithGRPCDialOptions(opts ...grpc.DialOption) Option {
-	return func(c *impl) error {
-		c.clientOpts = append(c.clientOpts, opts...)
 		return nil
 	}
 }

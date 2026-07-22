@@ -1,9 +1,10 @@
 {
     "dependencies": {
-        "grpc_tools_node_protoc_ts": "^5.3.3",
+        "@bufbuild/protobuf": "^2.13.0",
         "grpc-server-reflection": "^0.1.5",
         "grpc-tools": "^1.13.0",
         "grpc-web": "1.5.0",
+        "grpc_tools_node_protoc_ts": "^5.3.3",
         "protoc-gen-grpc": "^3.0.0",
         "ts-protoc-gen": "^0.15.0"
     },

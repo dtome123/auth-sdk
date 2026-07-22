@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	authPb "github.com/dtome123/auth-sdk/api/go/auth/v1"
+	authPb "github.com/dtome123/auth-sdk/api/auth/v1"
 	"github.com/dtome123/auth-sdk/jwt"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"

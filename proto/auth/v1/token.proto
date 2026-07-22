@@ -5,6 +5,7 @@ package auth.v1;
 option go_package = "./v1;auth";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 
 service TokenService {
   rpc Token(TokenRequest) returns (TokenResponse);
@@ -15,10 +16,10 @@ service TokenService {
 ////////////////////////////////////// REQUEST //////////////////////////////
 
 message SignRequest {
-  string user_id   = 1;
-  string user_type = 2;
-  string device_id = 3;
-  string metadata  = 4;
+  string                 user_id   = 1;
+  string                 user_type = 2;
+  string                 device_id = 3;
+  google.protobuf.Struct metadata  = 4;
 }
 
 message RefreshRequest { string refresh_token = 1; }
