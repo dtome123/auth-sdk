@@ -18,11 +18,6 @@ type Verifier interface {
 	Verify(tokenStr string) (Claims, error)
 }
 
-// JWTVerifier defines an interface for verifying JWT tokens.
-type JWTVerifier interface {
-	Verify(tokenStr string) (Claims, error)
-}
-
 // BearerToken contains both access and refresh tokens and expiry metadata.
 type BearerToken struct {
 	AccessToken  string

@@ -19,7 +19,7 @@ type MethodRule struct {
 
 type OauthInterceptor struct {
 	audience         string
-	verifier         jwt.JWTVerifier
+	verifier         jwt.Verifier
 	methodRules      []MethodRule
 	replayChecker    assertion.ReplayChecker
 	attachIdentityFn func(context.Context, jwt.Claims) context.Context
@@ -63,7 +63,7 @@ func WithGRPCTokenScheme(scheme string) OauthInterceptorOption {
 
 // === Constructor ===
 
-func NewOauthInterceptor(audience string, verifier jwt.JWTVerifier, opts ...OauthInterceptorOption) *OauthInterceptor {
+func NewOauthInterceptor(audience string, verifier jwt.Verifier, opts ...OauthInterceptorOption) *OauthInterceptor {
 	o := &OauthInterceptor{
 		audience:    audience,
 		verifier:    verifier,

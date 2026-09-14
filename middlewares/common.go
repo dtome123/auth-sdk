@@ -9,7 +9,7 @@ import (
 
 // verifyToken verifies a token string using the verifier and validates claims based on AuthMode.
 func verifyToken(
-	verifier jwt.JWTVerifier,
+	verifier jwt.Verifier,
 	token string,
 	expectedAud string,
 	replayChecker assertion.ReplayChecker,

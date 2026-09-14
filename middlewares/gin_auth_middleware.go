@@ -13,7 +13,7 @@ import (
 
 type OauthMiddleware struct {
 	audience           string
-	verifier           jwt.JWTVerifier
+	verifier           jwt.Verifier
 	replayChecker      assertion.ReplayChecker
 	attachIdentityFn   func(c *gin.Context, claims jwt.Claims)
 	tokenHeader        string // default: "Authorization"
@@ -73,7 +73,7 @@ func WithCookieName(name string) OauthMiddlewareOption {
 
 func NewOauthMiddleware(
 	audience string,
-	verifier jwt.JWTVerifier,
+	verifier jwt.Verifier,
 	opts ...OauthMiddlewareOption,
 ) *OauthMiddleware {
 	o := &OauthMiddleware{
