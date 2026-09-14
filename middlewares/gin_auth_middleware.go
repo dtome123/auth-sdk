@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 
 	"github.com/dtome123/auth-sdk/assertion"
@@ -9,9 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// === Middleware struct ===
+// ======================
+// Auth Middleware (Authentication / AuthN)
+// ======================
 
-type OauthMiddleware struct {
+// AuthMiddleware handles extracting and verifying tokens for Gin HTTP requests.
+type AuthMiddleware struct {
 	audience           string
 	verifier           jwt.Verifier
 	replayChecker      assertion.ReplayChecker
@@ -23,60 +27,62 @@ type OauthMiddleware struct {
 	cookieName         string // default: "access_token"
 }
 
-// === Functional Options ===
+// Backward compatibility alias
+type OauthMiddleware = AuthMiddleware
 
-type OauthMiddlewareOption func(*OauthMiddleware)
+// Functional Option
+type AuthMiddlewareOption func(*AuthMiddleware)
+type OauthMiddlewareOption = AuthMiddlewareOption
 
-func WithReplayChecker(checker assertion.ReplayChecker) OauthMiddlewareOption {
-	return func(o *OauthMiddleware) {
+func WithReplayChecker(checker assertion.ReplayChecker) AuthMiddlewareOption {
+	return func(o *AuthMiddleware) {
 		o.replayChecker = checker
 	}
 }
 
-func WithIdentityInjector(fn func(*gin.Context, jwt.Claims)) OauthMiddlewareOption {
-	return func(o *OauthMiddleware) {
+func WithIdentityInjector(fn func(*gin.Context, jwt.Claims)) AuthMiddlewareOption {
+	return func(o *AuthMiddleware) {
 		o.attachIdentityFn = fn
 	}
 }
 
-func WithTokenHeader(header string) OauthMiddlewareOption {
-	return func(o *OauthMiddleware) {
+func WithTokenHeader(header string) AuthMiddlewareOption {
+	return func(o *AuthMiddleware) {
 		o.tokenHeader = header
 	}
 }
 
-func WithTokenScheme(scheme string) OauthMiddlewareOption {
-	return func(o *OauthMiddleware) {
+func WithTokenScheme(scheme string) AuthMiddlewareOption {
+	return func(o *AuthMiddleware) {
 		o.tokenScheme = scheme
 	}
 }
 
-func WithBasicAuthAccounts(accounts map[string]string) OauthMiddlewareOption {
-	return func(o *OauthMiddleware) {
+func WithBasicAuthAccounts(accounts map[string]string) AuthMiddlewareOption {
+	return func(o *AuthMiddleware) {
 		o.basicAuthAccounts = accounts
 	}
 }
 
-func WithBasicAuthValidator(fn func(username, password string) (jwt.Claims, bool)) OauthMiddlewareOption {
-	return func(o *OauthMiddleware) {
+func WithBasicAuthValidator(fn func(username, password string) (jwt.Claims, bool)) AuthMiddlewareOption {
+	return func(o *AuthMiddleware) {
 		o.basicAuthValidator = fn
 	}
 }
 
-func WithCookieName(name string) OauthMiddlewareOption {
-	return func(o *OauthMiddleware) {
+func WithCookieName(name string) AuthMiddlewareOption {
+	return func(o *AuthMiddleware) {
 		o.cookieName = name
 	}
 }
 
-// === Constructor ===
-
-func NewOauthMiddleware(
+// NewAuthMiddleware creates a new authentication middleware.
+func NewAuthMiddleware(
 	audience string,
 	verifier jwt.Verifier,
-	opts ...OauthMiddlewareOption,
-) *OauthMiddleware {
-	o := &OauthMiddleware{
+	opts ...AuthMiddlewareOption,
+) *AuthMiddleware {
+	m := &AuthMiddleware{
 		audience:    audience,
 		verifier:    verifier,
 		tokenHeader: "Authorization",
@@ -84,85 +90,103 @@ func NewOauthMiddleware(
 		cookieName:  "access_token",
 	}
 	for _, opt := range opts {
-		opt(o)
+		opt(m)
 	}
-	return o
+	return m
 }
 
-// === Core verification middleware logic ===
+// NewOauthMiddleware is an alias for NewAuthMiddleware for backward compatibility.
+func NewOauthMiddleware(
+	audience string,
+	verifier jwt.Verifier,
+	opts ...AuthMiddlewareOption,
+) *AuthMiddleware {
+	return NewAuthMiddleware(audience, verifier, opts...)
+}
 
-func (o *OauthMiddleware) VerifyToken(opts ...jwt.ValidateOption) gin.HandlerFunc {
+// Authenticate is the pure Authentication (AuthN) middleware.
+// It verifies the identity and returns HTTP 401 Unauthorized if invalid or missing.
+func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var claims jwt.Claims
-
-		scheme, payload, extractErr := o.extractTokenAndScheme(c)
-		if extractErr == nil {
-			switch scheme {
-			case "basic":
-				if c.Request == nil {
-					c.AbortWithStatusJSON(401, gin.H{"error": "missing request context"})
-					return
-				}
-				user, pass, ok := c.Request.BasicAuth()
-				if !ok {
-					c.AbortWithStatusJSON(401, gin.H{"error": "invalid basic auth header"})
-					return
-				}
-				cClaims, valid := o.validateBasicAuth(user, pass)
-				if !valid {
-					c.AbortWithStatusJSON(401, gin.H{"error": "invalid basic auth credentials"})
-					return
-				}
-				claims = cClaims
-
-			default:
-				if payload == "" {
-					c.AbortWithStatusJSON(401, gin.H{"error": "empty token"})
-					return
-				}
-				cClaims, err := verifyToken(o.verifier, payload, o.audience, o.replayChecker, opts)
-				if err != nil {
-					c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
-					return
-				}
-				claims = cClaims
-			}
-		} else {
-			// Fallback to Cookie Auth if tokenHeader is missing
-			if o.cookieName != "" {
-				cookieToken, cookieErr := c.Cookie(o.cookieName)
-				if cookieErr == nil && cookieToken != "" {
-					cClaims, err := verifyToken(o.verifier, cookieToken, o.audience, o.replayChecker, opts)
-					if err == nil {
-						claims = cClaims
-					} else {
-						c.AbortWithStatusJSON(401, gin.H{"error": err.Error()})
-						return
-					}
-				} else {
-					c.AbortWithStatusJSON(401, gin.H{"error": extractErr.Error()})
-					return
-				}
-			} else {
-				c.AbortWithStatusJSON(401, gin.H{"error": extractErr.Error()})
-				return
-			}
+		claims, err := m.extractAndVerifyClaims(c, nil)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
 		}
 
-		if o.attachIdentityFn != nil && claims != nil {
-			o.attachIdentityFn(c, claims)
+		// Inject claims into context
+		SetGinClaims(c, claims)
+		if m.attachIdentityFn != nil && claims != nil {
+			m.attachIdentityFn(c, claims)
 		}
 
 		c.Next()
 	}
 }
 
-func (o *OauthMiddleware) validateBasicAuth(user, pass string) (jwt.Claims, bool) {
-	if o.basicAuthValidator != nil {
-		return o.basicAuthValidator(user, pass)
+// VerifyToken maintains backward compatibility with previous API.
+// It verifies token and optionally executes claims validation options.
+func (m *AuthMiddleware) VerifyToken(opts ...jwt.ValidateOption) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims, err := m.extractAndVerifyClaims(c, opts)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+
+		SetGinClaims(c, claims)
+		if m.attachIdentityFn != nil && claims != nil {
+			m.attachIdentityFn(c, claims)
+		}
+
+		c.Next()
 	}
-	if len(o.basicAuthAccounts) > 0 {
-		expectedPass, exists := o.basicAuthAccounts[user]
+}
+
+// Helper to extract and verify claims
+func (m *AuthMiddleware) extractAndVerifyClaims(c *gin.Context, validateOpts []jwt.ValidateOption) (jwt.Claims, error) {
+	scheme, payload, extractErr := m.extractTokenAndScheme(c)
+	if extractErr == nil {
+		switch scheme {
+		case "basic":
+			if c.Request == nil {
+				return nil, errors.New("missing request context")
+			}
+			user, pass, ok := c.Request.BasicAuth()
+			if !ok {
+				return nil, errors.New("invalid basic auth header")
+			}
+			cClaims, valid := m.validateBasicAuth(user, pass)
+			if !valid {
+				return nil, errors.New("invalid basic auth credentials")
+			}
+			return cClaims, nil
+
+		default:
+			if payload == "" {
+				return nil, errors.New("empty token")
+			}
+			return verifyToken(m.verifier, payload, m.audience, m.replayChecker, validateOpts)
+		}
+	}
+
+	// Fallback to Cookie Auth if tokenHeader is missing
+	if m.cookieName != "" {
+		cookieToken, cookieErr := c.Cookie(m.cookieName)
+		if cookieErr == nil && cookieToken != "" {
+			return verifyToken(m.verifier, cookieToken, m.audience, m.replayChecker, validateOpts)
+		}
+	}
+
+	return nil, extractErr
+}
+
+func (m *AuthMiddleware) validateBasicAuth(user, pass string) (jwt.Claims, bool) {
+	if m.basicAuthValidator != nil {
+		return m.basicAuthValidator(user, pass)
+	}
+	if len(m.basicAuthAccounts) > 0 {
+		expectedPass, exists := m.basicAuthAccounts[user]
 		if exists && expectedPass == pass {
 			claims := jwt.Claims{
 				"sub": jwt.Value{Value: user},
@@ -173,18 +197,16 @@ func (o *OauthMiddleware) validateBasicAuth(user, pass string) (jwt.Claims, bool
 	return nil, false
 }
 
-// === Header & Scheme extractor ===
-
-func (o *OauthMiddleware) extractTokenAndScheme(c *gin.Context) (scheme string, payload string, err error) {
-	rawHeader := c.GetHeader(o.tokenHeader)
+func (m *AuthMiddleware) extractTokenAndScheme(c *gin.Context) (scheme string, payload string, err error) {
+	rawHeader := c.GetHeader(m.tokenHeader)
 	if rawHeader == "" {
-		return "", "", errors.New("missing token header: " + o.tokenHeader)
+		return "", "", errors.New("missing token header: " + m.tokenHeader)
 	}
 
 	rawTrimmed := strings.TrimSpace(rawHeader)
 	parts := strings.SplitN(rawTrimmed, " ", 2)
 	if len(parts) == 1 {
-		return strings.ToLower(o.tokenScheme), parts[0], nil
+		return strings.ToLower(m.tokenScheme), parts[0], nil
 	}
 
 	return strings.ToLower(parts[0]), strings.TrimSpace(parts[1]), nil

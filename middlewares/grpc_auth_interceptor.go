@@ -8,8 +8,14 @@ import (
 	"github.com/dtome123/auth-sdk/assertion"
 	"github.com/dtome123/auth-sdk/jwt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
+
+// ======================
+// Auth Interceptor (Authentication / AuthN)
+// ======================
 
 type MethodRule struct {
 	Pattern         string
@@ -17,7 +23,8 @@ type MethodRule struct {
 	ValidateOptions []jwt.ValidateOption
 }
 
-type OauthInterceptor struct {
+// AuthInterceptor handles extracting and verifying tokens for incoming gRPC calls.
+type AuthInterceptor struct {
 	audience         string
 	verifier         jwt.Verifier
 	methodRules      []MethodRule
@@ -27,44 +34,46 @@ type OauthInterceptor struct {
 	tokenScheme      string
 }
 
-// === Functional Options ===
+// Backward compatibility alias
+type OauthInterceptor = AuthInterceptor
 
-type OauthInterceptorOption func(*OauthInterceptor)
+// Functional Options
+type AuthInterceptorOption func(*AuthInterceptor)
+type OauthInterceptorOption = AuthInterceptorOption
 
-func WithMethodRules(rules []MethodRule) OauthInterceptorOption {
-	return func(o *OauthInterceptor) {
+func WithMethodRules(rules []MethodRule) AuthInterceptorOption {
+	return func(o *AuthInterceptor) {
 		o.methodRules = rules
 	}
 }
 
-func WithGRPCReplayChecker(checker assertion.ReplayChecker) OauthInterceptorOption {
-	return func(o *OauthInterceptor) {
+func WithGRPCReplayChecker(checker assertion.ReplayChecker) AuthInterceptorOption {
+	return func(o *AuthInterceptor) {
 		o.replayChecker = checker
 	}
 }
 
-func WithGRPCIdentityInjector(fn func(context.Context, jwt.Claims) context.Context) OauthInterceptorOption {
-	return func(o *OauthInterceptor) {
+func WithGRPCIdentityInjector(fn func(context.Context, jwt.Claims) context.Context) AuthInterceptorOption {
+	return func(o *AuthInterceptor) {
 		o.attachIdentityFn = fn
 	}
 }
 
-func WithGRPCTokenHeader(header string) OauthInterceptorOption {
-	return func(o *OauthInterceptor) {
+func WithGRPCTokenHeader(header string) AuthInterceptorOption {
+	return func(o *AuthInterceptor) {
 		o.tokenHeader = strings.ToLower(header)
 	}
 }
 
-func WithGRPCTokenScheme(scheme string) OauthInterceptorOption {
-	return func(o *OauthInterceptor) {
+func WithGRPCTokenScheme(scheme string) AuthInterceptorOption {
+	return func(o *AuthInterceptor) {
 		o.tokenScheme = strings.ToLower(scheme)
 	}
 }
 
-// === Constructor ===
-
-func NewOauthInterceptor(audience string, verifier jwt.Verifier, opts ...OauthInterceptorOption) *OauthInterceptor {
-	o := &OauthInterceptor{
+// NewAuthInterceptor creates a new gRPC authentication interceptor.
+func NewAuthInterceptor(audience string, verifier jwt.Verifier, opts ...AuthInterceptorOption) *AuthInterceptor {
+	o := &AuthInterceptor{
 		audience:    audience,
 		verifier:    verifier,
 		methodRules: []MethodRule{},
@@ -77,42 +86,56 @@ func NewOauthInterceptor(audience string, verifier jwt.Verifier, opts ...OauthIn
 	return o
 }
 
-// === Unary Interceptor ===
+// NewOauthInterceptor is an alias for NewAuthInterceptor for backward compatibility.
+func NewOauthInterceptor(audience string, verifier jwt.Verifier, opts ...AuthInterceptorOption) *AuthInterceptor {
+	return NewAuthInterceptor(audience, verifier, opts...)
+}
 
-func (o *OauthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.UnaryServerInterceptor {
+// UnaryServerInterceptor returns the pure Authentication (AuthN) interceptor.
+// It verifies the token and injects Claims into context.
+// Returns codes.Unauthenticated if token is invalid or missing.
+func (a *AuthInterceptor) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
+	return a.VerifyInterceptor()
+}
+
+// VerifyInterceptor verifies the authentication of the incoming gRPC request.
+// Preserved for backward compatibility.
+func (a *AuthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		rule := o.matchMethod(info.FullMethod)
+		rule := a.matchMethod(info.FullMethod)
 
-		if rule == nil || rule.Skip {
+		if rule != nil && rule.Skip {
 			return handler(ctx, req)
 		}
 
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, errors.New("missing metadata in context")
+			return nil, status.Error(codes.Unauthenticated, "missing metadata in context")
 		}
 
-		_, payload, err := o.extractTokenAndScheme(md)
+		_, payload, err := a.extractTokenAndScheme(md)
 		if err != nil {
-			return nil, err
+			return nil, status.Error(codes.Unauthenticated, err.Error())
 		}
 
 		if payload == "" {
-			return nil, errors.New("empty token")
+			return nil, status.Error(codes.Unauthenticated, "empty token")
 		}
 
 		combinedOpts := append([]jwt.ValidateOption{}, opts...)
-		if len(rule.ValidateOptions) > 0 {
+		if rule != nil && len(rule.ValidateOptions) > 0 {
 			combinedOpts = append(combinedOpts, rule.ValidateOptions...)
 		}
 
-		claims, err := verifyToken(o.verifier, payload, o.audience, o.replayChecker, combinedOpts)
+		claims, err := verifyToken(a.verifier, payload, a.audience, a.replayChecker, combinedOpts)
 		if err != nil {
-			return nil, err
+			return nil, status.Error(codes.Unauthenticated, err.Error())
 		}
 
-		if o.attachIdentityFn != nil {
-			ctx = o.attachIdentityFn(ctx, claims)
+		// Inject claims into context
+		ctx = ContextWithClaims(ctx, claims)
+		if a.attachIdentityFn != nil {
+			ctx = a.attachIdentityFn(ctx, claims)
 		}
 
 		return handler(ctx, req)
@@ -121,8 +144,8 @@ func (o *OauthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.Un
 
 // === Helpers ===
 
-func (o *OauthInterceptor) matchMethod(method string) *MethodRule {
-	for _, rule := range o.methodRules {
+func (a *AuthInterceptor) matchMethod(method string) *MethodRule {
+	for _, rule := range a.methodRules {
 		if matchPattern(method, rule.Pattern) {
 			return &rule
 		}
@@ -130,23 +153,22 @@ func (o *OauthInterceptor) matchMethod(method string) *MethodRule {
 	return nil
 }
 
-func (o *OauthInterceptor) extractTokenAndScheme(md metadata.MD) (scheme string, payload string, err error) {
-	values := md.Get(o.tokenHeader)
+func (a *AuthInterceptor) extractTokenAndScheme(md metadata.MD) (scheme string, payload string, err error) {
+	values := md.Get(a.tokenHeader)
 	if len(values) == 0 {
-		return "", "", errors.New("missing token header: " + o.tokenHeader)
+		return "", "", errors.New("missing token header: " + a.tokenHeader)
 	}
 
 	raw := strings.TrimSpace(values[0])
 	parts := strings.SplitN(raw, " ", 2)
 	if len(parts) == 1 {
-		return strings.ToLower(o.tokenScheme), parts[0], nil
+		return strings.ToLower(a.tokenScheme), parts[0], nil
 	}
 
 	return strings.ToLower(parts[0]), strings.TrimSpace(parts[1]), nil
 }
 
-// === Pattern matcher with "*" suffix support ===
-
+// matchPattern supports exact match or "*" suffix matching.
 func matchPattern(s, pattern string) bool {
 	if prefix, ok := strings.CutSuffix(pattern, "*"); ok {
 		return strings.HasPrefix(s, prefix)
