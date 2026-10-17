@@ -19,17 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthorizationService_GetUserPermissions_FullMethodName  = "/auth.v1.AuthorizationService/GetUserPermissions"
-	AuthorizationService_HasPermission_FullMethodName       = "/auth.v1.AuthorizationService/HasPermission"
-	AuthorizationService_CheckPermissions_FullMethodName    = "/auth.v1.AuthorizationService/CheckPermissions"
-	AuthorizationService_ListPermissionPaths_FullMethodName = "/auth.v1.AuthorizationService/ListPermissionPaths"
-	AuthorizationService_ListPermissions_FullMethodName     = "/auth.v1.AuthorizationService/ListPermissions"
-	AuthorizationService_MigratePermissions_FullMethodName  = "/auth.v1.AuthorizationService/MigratePermissions"
-	AuthorizationService_AssignRolesToUser_FullMethodName   = "/auth.v1.AuthorizationService/AssignRolesToUser"
-	AuthorizationService_GetUserRoles_FullMethodName        = "/auth.v1.AuthorizationService/GetUserRoles"
-	AuthorizationService_CreateRole_FullMethodName          = "/auth.v1.AuthorizationService/CreateRole"
-	AuthorizationService_UpdateRole_FullMethodName          = "/auth.v1.AuthorizationService/UpdateRole"
-	AuthorizationService_ListRole_FullMethodName            = "/auth.v1.AuthorizationService/ListRole"
+	AuthorizationService_GetUserPermissions_FullMethodName = "/auth.v1.AuthorizationService/GetUserPermissions"
+	AuthorizationService_ListPermissions_FullMethodName    = "/auth.v1.AuthorizationService/ListPermissions"
+	AuthorizationService_MigratePermissions_FullMethodName = "/auth.v1.AuthorizationService/MigratePermissions"
+	AuthorizationService_AssignRolesToUser_FullMethodName  = "/auth.v1.AuthorizationService/AssignRolesToUser"
+	AuthorizationService_GetUserRoles_FullMethodName       = "/auth.v1.AuthorizationService/GetUserRoles"
+	AuthorizationService_CreateRole_FullMethodName         = "/auth.v1.AuthorizationService/CreateRole"
+	AuthorizationService_UpdateRole_FullMethodName         = "/auth.v1.AuthorizationService/UpdateRole"
+	AuthorizationService_ListRole_FullMethodName           = "/auth.v1.AuthorizationService/ListRole"
+	AuthorizationService_GetRole_FullMethodName            = "/auth.v1.AuthorizationService/GetRole"
 )
 
 // AuthorizationServiceClient is the client API for AuthorizationService service.
@@ -38,9 +36,6 @@ const (
 type AuthorizationServiceClient interface {
 	// ========= Permission APIs ==========
 	GetUserPermissions(ctx context.Context, in *GetUserPermissionsRequest, opts ...grpc.CallOption) (*GetUserPermissionsResponse, error)
-	HasPermission(ctx context.Context, in *HasPermissionRequest, opts ...grpc.CallOption) (*HasPermissionResponse, error)
-	CheckPermissions(ctx context.Context, in *CheckPermissionsRequest, opts ...grpc.CallOption) (*CheckPermissionsResponse, error)
-	ListPermissionPaths(ctx context.Context, in *ListPermissionPathsRequest, opts ...grpc.CallOption) (*ListPermissionPathsResponse, error)
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	MigratePermissions(ctx context.Context, in *MigratePermissionsRequest, opts ...grpc.CallOption) (*MigratePermissionsResponse, error)
 	// ========= Role APIs ===============
@@ -49,6 +44,7 @@ type AuthorizationServiceClient interface {
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
 	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error)
 	ListRole(ctx context.Context, in *ListRoleRequest, opts ...grpc.CallOption) (*ListRoleResponse, error)
+	GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error)
 }
 
 type authorizationServiceClient struct {
@@ -63,36 +59,6 @@ func (c *authorizationServiceClient) GetUserPermissions(ctx context.Context, in 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserPermissionsResponse)
 	err := c.cc.Invoke(ctx, AuthorizationService_GetUserPermissions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authorizationServiceClient) HasPermission(ctx context.Context, in *HasPermissionRequest, opts ...grpc.CallOption) (*HasPermissionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(HasPermissionResponse)
-	err := c.cc.Invoke(ctx, AuthorizationService_HasPermission_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authorizationServiceClient) CheckPermissions(ctx context.Context, in *CheckPermissionsRequest, opts ...grpc.CallOption) (*CheckPermissionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CheckPermissionsResponse)
-	err := c.cc.Invoke(ctx, AuthorizationService_CheckPermissions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authorizationServiceClient) ListPermissionPaths(ctx context.Context, in *ListPermissionPathsRequest, opts ...grpc.CallOption) (*ListPermissionPathsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListPermissionPathsResponse)
-	err := c.cc.Invoke(ctx, AuthorizationService_ListPermissionPaths_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -169,15 +135,22 @@ func (c *authorizationServiceClient) ListRole(ctx context.Context, in *ListRoleR
 	return out, nil
 }
 
+func (c *authorizationServiceClient) GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoleResponse)
+	err := c.cc.Invoke(ctx, AuthorizationService_GetRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthorizationServiceServer is the server API for AuthorizationService service.
 // All implementations must embed UnimplementedAuthorizationServiceServer
 // for forward compatibility.
 type AuthorizationServiceServer interface {
 	// ========= Permission APIs ==========
 	GetUserPermissions(context.Context, *GetUserPermissionsRequest) (*GetUserPermissionsResponse, error)
-	HasPermission(context.Context, *HasPermissionRequest) (*HasPermissionResponse, error)
-	CheckPermissions(context.Context, *CheckPermissionsRequest) (*CheckPermissionsResponse, error)
-	ListPermissionPaths(context.Context, *ListPermissionPathsRequest) (*ListPermissionPathsResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	MigratePermissions(context.Context, *MigratePermissionsRequest) (*MigratePermissionsResponse, error)
 	// ========= Role APIs ===============
@@ -186,6 +159,7 @@ type AuthorizationServiceServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	ListRole(context.Context, *ListRoleRequest) (*ListRoleResponse, error)
+	GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error)
 	mustEmbedUnimplementedAuthorizationServiceServer()
 }
 
@@ -198,15 +172,6 @@ type UnimplementedAuthorizationServiceServer struct{}
 
 func (UnimplementedAuthorizationServiceServer) GetUserPermissions(context.Context, *GetUserPermissionsRequest) (*GetUserPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserPermissions not implemented")
-}
-func (UnimplementedAuthorizationServiceServer) HasPermission(context.Context, *HasPermissionRequest) (*HasPermissionResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method HasPermission not implemented")
-}
-func (UnimplementedAuthorizationServiceServer) CheckPermissions(context.Context, *CheckPermissionsRequest) (*CheckPermissionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CheckPermissions not implemented")
-}
-func (UnimplementedAuthorizationServiceServer) ListPermissionPaths(context.Context, *ListPermissionPathsRequest) (*ListPermissionPathsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListPermissionPaths not implemented")
 }
 func (UnimplementedAuthorizationServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPermissions not implemented")
@@ -228,6 +193,9 @@ func (UnimplementedAuthorizationServiceServer) UpdateRole(context.Context, *Upda
 }
 func (UnimplementedAuthorizationServiceServer) ListRole(context.Context, *ListRoleRequest) (*ListRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRole not implemented")
+}
+func (UnimplementedAuthorizationServiceServer) GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRole not implemented")
 }
 func (UnimplementedAuthorizationServiceServer) mustEmbedUnimplementedAuthorizationServiceServer() {}
 func (UnimplementedAuthorizationServiceServer) testEmbeddedByValue()                              {}
@@ -264,60 +232,6 @@ func _AuthorizationService_GetUserPermissions_Handler(srv interface{}, ctx conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).GetUserPermissions(ctx, req.(*GetUserPermissionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthorizationService_HasPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HasPermissionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthorizationServiceServer).HasPermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthorizationService_HasPermission_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthorizationServiceServer).HasPermission(ctx, req.(*HasPermissionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthorizationService_CheckPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckPermissionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthorizationServiceServer).CheckPermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthorizationService_CheckPermissions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthorizationServiceServer).CheckPermissions(ctx, req.(*CheckPermissionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthorizationService_ListPermissionPaths_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPermissionPathsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthorizationServiceServer).ListPermissionPaths(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthorizationService_ListPermissionPaths_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthorizationServiceServer).ListPermissionPaths(ctx, req.(*ListPermissionPathsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -448,6 +362,24 @@ func _AuthorizationService_ListRole_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthorizationService_GetRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorizationServiceServer).GetRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthorizationService_GetRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorizationServiceServer).GetRole(ctx, req.(*GetRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthorizationService_ServiceDesc is the grpc.ServiceDesc for AuthorizationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -458,18 +390,6 @@ var AuthorizationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserPermissions",
 			Handler:    _AuthorizationService_GetUserPermissions_Handler,
-		},
-		{
-			MethodName: "HasPermission",
-			Handler:    _AuthorizationService_HasPermission_Handler,
-		},
-		{
-			MethodName: "CheckPermissions",
-			Handler:    _AuthorizationService_CheckPermissions_Handler,
-		},
-		{
-			MethodName: "ListPermissionPaths",
-			Handler:    _AuthorizationService_ListPermissionPaths_Handler,
 		},
 		{
 			MethodName: "ListPermissions",
@@ -498,6 +418,10 @@ var AuthorizationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListRole",
 			Handler:    _AuthorizationService_ListRole_Handler,
+		},
+		{
+			MethodName: "GetRole",
+			Handler:    _AuthorizationService_GetRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
