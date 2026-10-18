@@ -166,6 +166,7 @@ func (m *AuthMiddleware) extractAndVerifyClaims(c *gin.Context, validateOpts []j
 			if payload == "" {
 				return nil, errors.New("empty token")
 			}
+			SetGinRawToken(c, payload)
 			return verifyToken(m.verifier, payload, m.audience, m.replayChecker, validateOpts)
 		}
 	}
@@ -174,6 +175,7 @@ func (m *AuthMiddleware) extractAndVerifyClaims(c *gin.Context, validateOpts []j
 	if m.cookieName != "" {
 		cookieToken, cookieErr := c.Cookie(m.cookieName)
 		if cookieErr == nil && cookieToken != "" {
+			SetGinRawToken(c, cookieToken)
 			return verifyToken(m.verifier, cookieToken, m.audience, m.replayChecker, validateOpts)
 		}
 	}

@@ -134,6 +134,7 @@ func (a *AuthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.Una
 
 		// Inject claims into context
 		ctx = ContextWithClaims(ctx, claims)
+		ctx = ContextWithRawToken(ctx, payload)
 		if a.attachIdentityFn != nil {
 			ctx = a.attachIdentityFn(ctx, claims)
 		}
