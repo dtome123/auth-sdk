@@ -15,7 +15,7 @@ func (repo *Client[T]) GetSession(ctx context.Context, userID, deviceID string) 
 		return nil, fmt.Errorf("redis client is not initialized")
 	}
 
-	key := repo.keyBuilder(userID, deviceID)
+	key := BuildSessionKey(userID, deviceID)
 	return getSessionByKey[T](ctx, repo.client, key)
 }
 

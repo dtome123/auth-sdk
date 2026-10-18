@@ -16,7 +16,7 @@ func (repo *Client[T]) UpsertSession(ctx context.Context, session Session[T]) er
 		return fmt.Errorf("redis client is not initialized")
 	}
 
-	key := repo.keyBuilder(session.UserID, session.DeviceID)
+	key := BuildSessionKey(session.UserID, session.DeviceID)
 	data, err := json.Marshal(session)
 	if err != nil {
 		return fmt.Errorf("failed to marshal session: %w", err)
@@ -34,7 +34,7 @@ func (repo *Client[T]) UpsertSession(ctx context.Context, session Session[T]) er
 }
 
 // UpsertSession saves or updates a Session[T] directly via redis.Cmdable.
-func UpsertSession[T any](ctx context.Context, client redis.Cmdable, session Session[T], opts ...Option[T]) error {
-	c := NewClient[T](client, opts...)
+func UpsertSession[T any](ctx context.Context, client redis.Cmdable, session Session[T]) error {
+	c := New[T](client)
 	return c.UpsertSession(ctx, session)
 }

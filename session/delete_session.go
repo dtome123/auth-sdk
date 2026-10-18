@@ -13,7 +13,7 @@ func (repo *Client[T]) DeleteSession(ctx context.Context, userID, deviceID strin
 		return fmt.Errorf("redis client is not initialized")
 	}
 
-	key := repo.keyBuilder(userID, deviceID)
+	key := BuildSessionKey(userID, deviceID)
 	return repo.client.Del(ctx, key).Err()
 }
 

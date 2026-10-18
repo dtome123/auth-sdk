@@ -63,7 +63,7 @@ func TestSessionWithBaseStruct(t *testing.T) {
 	mock := newMockCmdable()
 	ctx := context.Background()
 
-	client := NewClient[UserPayload](mock)
+	client := New[UserPayload](mock)
 
 	sess := Session[UserPayload]{
 		BaseSession: BaseSession{
@@ -122,7 +122,7 @@ func TestExpiredTTLDeletesSession(t *testing.T) {
 	mock := newMockCmdable()
 	ctx := context.Background()
 
-	client := NewClient[any](mock)
+	client := New[any](mock)
 
 	key := BuildSessionKey("u-exp", "dev-1")
 	mock.store[key] = `{"id":"old"}`
@@ -142,38 +142,6 @@ func TestExpiredTTLDeletesSession(t *testing.T) {
 
 	if _, exists := mock.store[key]; exists {
 		t.Errorf("expected key to be deleted when TTL is in past")
-	}
-}
-
-func TestCustomOptions(t *testing.T) {
-	mock := newMockCmdable()
-	ctx := context.Background()
-
-	customKeyBuilder := func(userID, deviceID string) string {
-		return "custom:auth:" + userID + ":" + deviceID
-	}
-
-	client := NewClient[any](
-		mock,
-		WithKeyBuilder[any](customKeyBuilder),
-	)
-
-	sess := Session[any]{
-		BaseSession: BaseSession{
-			UserID:   "u-custom",
-			DeviceID: "d-custom",
-			TTL:      time.Now().Add(10 * time.Minute),
-		},
-	}
-
-	err := client.UpsertSession(ctx, sess)
-	if err != nil {
-		t.Fatalf("UpsertSession failed: %v", err)
-	}
-
-	expectedKey := "custom:auth:u-custom:d-custom"
-	if _, ok := mock.store[expectedKey]; !ok {
-		t.Errorf("expected key %s in store, got store: %+v", expectedKey, mock.store)
 	}
 }
 

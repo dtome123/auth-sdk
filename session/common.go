@@ -9,8 +9,3 @@ const DefaultSessionKeyFormat = "session:user:%s:device:%s"
 func BuildSessionKey(userID, deviceID string) string {
 	return fmt.Sprintf(DefaultSessionKeyFormat, userID, deviceID)
 }
-
-// buildSessionKey is an internal helper retained for backward compatibility.
-func buildSessionKey(userID, deviceID string) string {
-	return BuildSessionKey(userID, deviceID)
-}
