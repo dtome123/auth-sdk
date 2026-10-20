@@ -33,8 +33,12 @@ func CheckSessionInterceptor[T any](cfg SessionConfig[T]) grpc.UnaryServerInterc
 		deviceID := claims.Get(deviceClaim).AsString()
 		jti := claims.Get(jtiClaim).AsString()
 
-		if userID == "" || deviceID == "" || jti == "" {
-			return nil, status.Error(codes.Unauthenticated, "unauthenticated: missing user_id, device_id or jti in claims")
+		if deviceID == "" {
+			deviceID = "*"
+		}
+
+		if userID == "" || jti == "" {
+			return nil, status.Error(codes.Unauthenticated, "unauthenticated: missing user_id or jti in claims")
 		}
 
 		sess, err := cfg.Repo.GetSession(ctx, userID, deviceID)
