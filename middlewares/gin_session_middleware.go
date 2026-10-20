@@ -8,17 +8,12 @@ import (
 
 // CheckSession returns a Gin middleware that validates an active session for the authenticated user.
 func CheckSession[T any](cfg SessionConfig[T]) gin.HandlerFunc {
-	userClaim := cfg.UserIDClaim
-	if userClaim == "" {
-		userClaim = "sub"
-	}
+	userClaim := "sub"
+	jtiClaim := "jti"
+
 	deviceClaim := cfg.DeviceIDClaim
 	if deviceClaim == "" {
 		deviceClaim = "device_id"
-	}
-	jtiClaim := cfg.JTIClaim
-	if jtiClaim == "" {
-		jtiClaim = "jti"
 	}
 
 	return func(c *gin.Context) {

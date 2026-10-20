@@ -10,17 +10,13 @@ import (
 
 // CheckSessionInterceptor returns a gRPC unary interceptor that validates an active session for the authenticated user.
 func CheckSessionInterceptor[T any](cfg SessionConfig[T]) grpc.UnaryServerInterceptor {
-	userClaim := cfg.UserIDClaim
-	if userClaim == "" {
-		userClaim = "sub"
-	}
+
+	userClaim := "sub"
+	jtiClaim := "jti"
+
 	deviceClaim := cfg.DeviceIDClaim
 	if deviceClaim == "" {
 		deviceClaim = "device_id"
-	}
-	jtiClaim := cfg.JTIClaim
-	if jtiClaim == "" {
-		jtiClaim = "jti"
 	}
 
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
