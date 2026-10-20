@@ -26,9 +26,9 @@ const (
 type SignRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	UserType      string                 `protobuf:"bytes,2,opt,name=user_type,json=userType,proto3" json:"user_type,omitempty"`
-	DeviceId      string                 `protobuf:"bytes,3,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	UserTyype     string                 `protobuf:"bytes,3,opt,name=user_tyype,json=userTyype,proto3" json:"user_tyype,omitempty"`
+	Claim         *structpb.Struct       `protobuf:"bytes,4,opt,name=claim,proto3" json:"claim,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -70,13 +70,6 @@ func (x *SignRequest) GetUserId() string {
 	return ""
 }
 
-func (x *SignRequest) GetUserType() string {
-	if x != nil {
-		return x.UserType
-	}
-	return ""
-}
-
 func (x *SignRequest) GetDeviceId() string {
 	if x != nil {
 		return x.DeviceId
@@ -84,16 +77,26 @@ func (x *SignRequest) GetDeviceId() string {
 	return ""
 }
 
-func (x *SignRequest) GetMetadata() *structpb.Struct {
+func (x *SignRequest) GetUserTyype() string {
 	if x != nil {
-		return x.Metadata
+		return x.UserTyype
+	}
+	return ""
+}
+
+func (x *SignRequest) GetClaim() *structpb.Struct {
+	if x != nil {
+		return x.Claim
 	}
 	return nil
 }
 
 type RefreshRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	UserType      string                 `protobuf:"bytes,3,opt,name=user_type,json=userType,proto3" json:"user_type,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,4,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,6 +129,27 @@ func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use RefreshRequest.ProtoReflect.Descriptor instead.
 func (*RefreshRequest) Descriptor() ([]byte, []int) {
 	return file_auth_v1_token_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RefreshRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *RefreshRequest) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *RefreshRequest) GetUserType() string {
+	if x != nil {
+		return x.UserType
+	}
+	return ""
 }
 
 func (x *RefreshRequest) GetRefreshToken() string {
@@ -395,14 +419,18 @@ var File_auth_v1_token_proto protoreflect.FileDescriptor
 
 const file_auth_v1_token_proto_rawDesc = "" +
 	"\n" +
-	"\x13auth/v1/token.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x95\x01\n" +
+	"\x13auth/v1/token.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x91\x01\n" +
 	"\vSignRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tuser_type\x18\x02 \x01(\tR\buserType\x12\x1b\n" +
-	"\tdevice_id\x18\x03 \x01(\tR\bdeviceId\x123\n" +
-	"\bmetadata\x18\x04 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"5\n" +
-	"\x0eRefreshRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\x8c\x01\n" +
+	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12\x1d\n" +
+	"\n" +
+	"user_tyype\x18\x03 \x01(\tR\tuserTyype\x12-\n" +
+	"\x05claim\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x05claim\"\x88\x01\n" +
+	"\x0eRefreshRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
+	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12\x1b\n" +
+	"\tuser_type\x18\x03 \x01(\tR\buserType\x12#\n" +
+	"\rrefresh_token\x18\x04 \x01(\tR\frefreshToken\"\x8c\x01\n" +
 	"\fTokenRequest\x12\x1d\n" +
 	"\n" +
 	"grant_type\x18\x01 \x01(\tR\tgrantType\x122\n" +
@@ -457,7 +485,7 @@ var file_auth_v1_token_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
 var file_auth_v1_token_proto_depIdxs = []int32{
-	6, // 0: auth.v1.SignRequest.metadata:type_name -> google.protobuf.Struct
+	6, // 0: auth.v1.SignRequest.claim:type_name -> google.protobuf.Struct
 	7, // 1: auth.v1.SignResponse.expires_at:type_name -> google.protobuf.Timestamp
 	7, // 2: auth.v1.RefreshResponse.expires_at:type_name -> google.protobuf.Timestamp
 	2, // 3: auth.v1.TokenService.Token:input_type -> auth.v1.TokenRequest

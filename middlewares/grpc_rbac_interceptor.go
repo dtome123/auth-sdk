@@ -10,22 +10,22 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// PermissionExtractor trích xuất danh sách permissions từ context.
+// PermissionExtractor extracts user permissions from context.
 type PermissionExtractor func(ctx context.Context) []string
 
-// ResourceRBACConfig cấu hình kiểm tra quyền theo Resource-Action.
+// ResourceRBACConfig configures permission enforcement based on Resource-Action.
 type ResourceRBACConfig struct {
-	// Resource là định danh tài nguyên (ví dụ: "tenant:staff")
+	// Resource is the resource identifier (e.g. "tenant:staff")
 	Resource string
 
-	// MethodActions map tên RPC method sang action tương ứng (ví dụ: "ListStaff": "read")
+	// MethodActions maps RPC method name to its required action (e.g. "ListStaff": "read")
 	MethodActions map[string]string
 
-	// Extractor là hàm lấy permissions của user từ context
+	// Extractor extracts user permissions from context
 	Extractor PermissionExtractor
 }
 
-// RequireResourcePermission trả về unary interceptor kiểm tra quyền theo format <resource>:<action>.
+// RequireResourcePermission returns a unary interceptor that enforces RBAC based on <resource>:<action>.
 func RequireResourcePermission(cfg ResourceRBACConfig) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		methodName := info.FullMethod
@@ -33,6 +33,7 @@ func RequireResourcePermission(cfg ResourceRBACConfig) grpc.UnaryServerIntercept
 			methodName = info.FullMethod[idx+1:]
 		}
 
+		// Deny by default: reject methods that have no configured action
 		action, exists := cfg.MethodActions[methodName]
 		if !exists || action == "" {
 			return nil, status.Errorf(codes.PermissionDenied, "method %s has no permission configured", methodName)
