@@ -16,10 +16,10 @@ service TokenService {
 ////////////////////////////////////// REQUEST //////////////////////////////
 
 message SignRequest {
-  string                 user_id    = 1;
-  string                 device_id  = 2;
-  string                 user_tyype = 3;
-  google.protobuf.Struct claim      = 4;
+  string                 user_id   = 1;
+  string                 device_id = 2;
+  string                 user_type = 3;
+  google.protobuf.Struct claim     = 4;
 }
 
 message RefreshRequest {

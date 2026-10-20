@@ -27,7 +27,7 @@ type SignRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	DeviceId      string                 `protobuf:"bytes,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	UserTyype     string                 `protobuf:"bytes,3,opt,name=user_tyype,json=userTyype,proto3" json:"user_tyype,omitempty"`
+	UserType      string                 `protobuf:"bytes,3,opt,name=user_type,json=userType,proto3" json:"user_type,omitempty"`
 	Claim         *structpb.Struct       `protobuf:"bytes,4,opt,name=claim,proto3" json:"claim,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -77,9 +77,9 @@ func (x *SignRequest) GetDeviceId() string {
 	return ""
 }
 
-func (x *SignRequest) GetUserTyype() string {
+func (x *SignRequest) GetUserType() string {
 	if x != nil {
-		return x.UserTyype
+		return x.UserType
 	}
 	return ""
 }
@@ -419,12 +419,11 @@ var File_auth_v1_token_proto protoreflect.FileDescriptor
 
 const file_auth_v1_token_proto_rawDesc = "" +
 	"\n" +
-	"\x13auth/v1/token.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x91\x01\n" +
+	"\x13auth/v1/token.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x8f\x01\n" +
 	"\vSignRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12\x1d\n" +
-	"\n" +
-	"user_tyype\x18\x03 \x01(\tR\tuserTyype\x12-\n" +
+	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12\x1b\n" +
+	"\tuser_type\x18\x03 \x01(\tR\buserType\x12-\n" +
 	"\x05claim\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x05claim\"\x88\x01\n" +
 	"\x0eRefreshRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
