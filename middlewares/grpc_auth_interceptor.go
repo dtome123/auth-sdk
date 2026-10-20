@@ -22,7 +22,7 @@ type AuthInterceptor struct {
 	audience         string
 	verifier         jwt.Verifier
 	replayChecker    assertion.ReplayChecker
-	attachIdentityFn func(context.Context, jwt.Claims) context.Context
+	attachIdentityFn func(context.Context, jwt.Claims) (context.Context, error)
 	tokenHeader      string
 	tokenScheme      string
 }
@@ -40,7 +40,7 @@ func WithGRPCReplayChecker(checker assertion.ReplayChecker) AuthInterceptorOptio
 	}
 }
 
-func WithGRPCIdentityInjector(fn func(context.Context, jwt.Claims) context.Context) AuthInterceptorOption {
+func WithGRPCIdentityInjector(fn func(context.Context, jwt.Claims) (context.Context, error)) AuthInterceptorOption {
 	return func(o *AuthInterceptor) {
 		o.attachIdentityFn = fn
 	}
@@ -111,7 +111,11 @@ func (a *AuthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.Una
 		ctx = ContextWithClaims(ctx, claims)
 		ctx = ContextWithRawToken(ctx, payload)
 		if a.attachIdentityFn != nil {
-			ctx = a.attachIdentityFn(ctx, claims)
+			var err error
+			ctx, err = a.attachIdentityFn(ctx, claims)
+			if err != nil {
+				return nil, status.Error(codes.Unauthenticated, err.Error())
+			}
 		}
 
 		return handler(ctx, req)
