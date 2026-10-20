@@ -17,17 +17,10 @@ import (
 // Auth Interceptor (Authentication / AuthN)
 // ======================
 
-type MethodRule struct {
-	Pattern         string
-	Skip            bool
-	ValidateOptions []jwt.ValidateOption
-}
-
 // AuthInterceptor handles extracting and verifying tokens for incoming gRPC calls.
 type AuthInterceptor struct {
 	audience         string
 	verifier         jwt.Verifier
-	methodRules      []MethodRule
 	replayChecker    assertion.ReplayChecker
 	attachIdentityFn func(context.Context, jwt.Claims) context.Context
 	tokenHeader      string
@@ -40,12 +33,6 @@ type OauthInterceptor = AuthInterceptor
 // Functional Options
 type AuthInterceptorOption func(*AuthInterceptor)
 type OauthInterceptorOption = AuthInterceptorOption
-
-func WithMethodRules(rules []MethodRule) AuthInterceptorOption {
-	return func(o *AuthInterceptor) {
-		o.methodRules = rules
-	}
-}
 
 func WithGRPCReplayChecker(checker assertion.ReplayChecker) AuthInterceptorOption {
 	return func(o *AuthInterceptor) {
@@ -76,7 +63,6 @@ func NewAuthInterceptor(audience string, verifier jwt.Verifier, opts ...AuthInte
 	o := &AuthInterceptor{
 		audience:    audience,
 		verifier:    verifier,
-		methodRules: []MethodRule{},
 		tokenHeader: "authorization",
 		tokenScheme: "bearer",
 	}
@@ -102,12 +88,6 @@ func (a *AuthInterceptor) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 // Preserved for backward compatibility.
 func (a *AuthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		rule := a.matchMethod(info.FullMethod)
-
-		if rule != nil && rule.Skip {
-			return handler(ctx, req)
-		}
-
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Error(codes.Unauthenticated, "missing metadata in context")
@@ -122,12 +102,7 @@ func (a *AuthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.Una
 			return nil, status.Error(codes.Unauthenticated, "empty token")
 		}
 
-		combinedOpts := append([]jwt.ValidateOption{}, opts...)
-		if rule != nil && len(rule.ValidateOptions) > 0 {
-			combinedOpts = append(combinedOpts, rule.ValidateOptions...)
-		}
-
-		claims, err := verifyToken(a.verifier, payload, a.audience, a.replayChecker, combinedOpts)
+		claims, err := verifyToken(a.verifier, payload, a.audience, a.replayChecker, opts)
 		if err != nil {
 			return nil, status.Error(codes.Unauthenticated, err.Error())
 		}
@@ -144,15 +119,6 @@ func (a *AuthInterceptor) VerifyInterceptor(opts ...jwt.ValidateOption) grpc.Una
 }
 
 // === Helpers ===
-
-func (a *AuthInterceptor) matchMethod(method string) *MethodRule {
-	for _, rule := range a.methodRules {
-		if matchPattern(method, rule.Pattern) {
-			return &rule
-		}
-	}
-	return nil
-}
 
 func (a *AuthInterceptor) extractTokenAndScheme(md metadata.MD) (scheme string, payload string, err error) {
 	values := md.Get(a.tokenHeader)

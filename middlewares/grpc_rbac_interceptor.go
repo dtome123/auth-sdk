@@ -3,109 +3,53 @@ package middlewares
 import (
 	"context"
 	"slices"
+	"strings"
 
-	"github.com/dtome123/auth-sdk/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// ======================
-// RBAC & Authorization Interceptors (AuthZ)
-// ======================
+// PermissionExtractor trích xuất danh sách permissions từ context.
+type PermissionExtractor func(ctx context.Context) []string
 
-// AuthorizationRule defines the authorization criteria for gRPC methods matching Pattern.
-type AuthorizationRule struct {
-	Pattern          string // Method pattern, e.g. "/auth.v1.TokenService/*" or exact name
-	RequireRoles     []string
-	RequireScopes    []string
-	RequirePerms     []string
-	CustomAuthorizer func(ctx context.Context, claims jwt.Claims) (bool, error)
-	Skip             bool
+// ResourceRBACConfig cấu hình kiểm tra quyền theo Resource-Action.
+type ResourceRBACConfig struct {
+	// Resource là định danh tài nguyên (ví dụ: "tenant:staff")
+	Resource string
+
+	// MethodActions map tên RPC method sang action tương ứng (ví dụ: "ListStaff": "read")
+	MethodActions map[string]string
+
+	// Extractor là hàm lấy permissions của user từ context
+	Extractor PermissionExtractor
 }
 
-// AuthorizationInterceptor enforces method-level authorization for gRPC calls.
-type AuthorizationInterceptor struct {
-	rules []AuthorizationRule
-}
+// RequireResourcePermission trả về unary interceptor kiểm tra quyền theo format <resource>:<action>.
+func RequireResourcePermission(cfg ResourceRBACConfig) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		methodName := info.FullMethod
+		if idx := strings.LastIndex(info.FullMethod, "/"); idx != -1 {
+			methodName = info.FullMethod[idx+1:]
+		}
 
-// NewAuthorizationInterceptor creates a new gRPC authorization interceptor.
-func NewAuthorizationInterceptor(rules ...AuthorizationRule) *AuthorizationInterceptor {
-	return &AuthorizationInterceptor{
-		rules: rules,
-	}
-}
+		action, exists := cfg.MethodActions[methodName]
+		if !exists || action == "" {
+			return nil, status.Errorf(codes.PermissionDenied, "method %s has no permission configured", methodName)
+		}
 
-// UnaryServerInterceptor returns the authorization unary server interceptor.
-// Returns codes.Unauthenticated if claims are missing from context,
-// and codes.PermissionDenied if the claims do not satisfy the required rules.
-func (a *AuthorizationInterceptor) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		rule := a.matchRule(info.FullMethod)
-		if rule == nil || rule.Skip {
+		requiredPermission := cfg.Resource + ":" + action
+		adminPermission := cfg.Resource + ":*"
+
+		var userPerms []string
+		if cfg.Extractor != nil {
+			userPerms = cfg.Extractor(ctx)
+		}
+
+		if slices.Contains(userPerms, requiredPermission) || slices.Contains(userPerms, adminPermission) {
 			return handler(ctx, req)
 		}
 
-		claims, ok := ClaimsFromContext(ctx)
-		if !ok || claims == nil {
-			return nil, status.Error(codes.Unauthenticated, "unauthenticated: missing claims in context")
-		}
-
-		// 1. Role verification
-		if len(rule.RequireRoles) > 0 {
-			userRoles := extractRolesFromClaims(claims)
-			matched := false
-			for _, reqRole := range rule.RequireRoles {
-				if slices.Contains(userRoles, reqRole) {
-					matched = true
-					break
-				}
-			}
-			if !matched {
-				return nil, status.Error(codes.PermissionDenied, "permission denied: missing required role")
-			}
-		}
-
-		// 2. Scope verification
-		if len(rule.RequireScopes) > 0 {
-			tokenScopes := extractScopesFromClaims(claims)
-			for _, reqScope := range rule.RequireScopes {
-				if !slices.Contains(tokenScopes, reqScope) {
-					return nil, status.Errorf(codes.PermissionDenied, "permission denied: missing required scope: %s", reqScope)
-				}
-			}
-		}
-
-		// 3. Permission verification
-		if len(rule.RequirePerms) > 0 {
-			userPerms := extractPermissionsFromClaims(claims)
-			for _, reqPerm := range rule.RequirePerms {
-				if !slices.Contains(userPerms, reqPerm) {
-					return nil, status.Errorf(codes.PermissionDenied, "permission denied: missing required permission: %s", reqPerm)
-				}
-			}
-		}
-
-		// 4. Custom authorizer function
-		if rule.CustomAuthorizer != nil {
-			allowed, err := rule.CustomAuthorizer(ctx, claims)
-			if err != nil {
-				return nil, status.Errorf(codes.PermissionDenied, "permission denied: %v", err)
-			}
-			if !allowed {
-				return nil, status.Error(codes.PermissionDenied, "permission denied: access denied")
-			}
-		}
-
-		return handler(ctx, req)
+		return nil, status.Errorf(codes.PermissionDenied, "permission denied: require %s", requiredPermission)
 	}
-}
-
-func (a *AuthorizationInterceptor) matchRule(method string) *AuthorizationRule {
-	for _, rule := range a.rules {
-		if matchPattern(method, rule.Pattern) {
-			return &rule
-		}
-	}
-	return nil
 }
