@@ -27,6 +27,7 @@ const (
 	AuthorizationService_CreateRole_FullMethodName         = "/auth.v1.AuthorizationService/CreateRole"
 	AuthorizationService_UpdateRole_FullMethodName         = "/auth.v1.AuthorizationService/UpdateRole"
 	AuthorizationService_ListRole_FullMethodName           = "/auth.v1.AuthorizationService/ListRole"
+	AuthorizationService_GetRoleByCode_FullMethodName      = "/auth.v1.AuthorizationService/GetRoleByCode"
 	AuthorizationService_GetRole_FullMethodName            = "/auth.v1.AuthorizationService/GetRole"
 )
 
@@ -44,6 +45,7 @@ type AuthorizationServiceClient interface {
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
 	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error)
 	ListRole(ctx context.Context, in *ListRoleRequest, opts ...grpc.CallOption) (*ListRoleResponse, error)
+	GetRoleByCode(ctx context.Context, in *GetRoleByCodeRequest, opts ...grpc.CallOption) (*GetRoleByCodeResponse, error)
 	GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error)
 }
 
@@ -135,6 +137,16 @@ func (c *authorizationServiceClient) ListRole(ctx context.Context, in *ListRoleR
 	return out, nil
 }
 
+func (c *authorizationServiceClient) GetRoleByCode(ctx context.Context, in *GetRoleByCodeRequest, opts ...grpc.CallOption) (*GetRoleByCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoleByCodeResponse)
+	err := c.cc.Invoke(ctx, AuthorizationService_GetRoleByCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authorizationServiceClient) GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRoleResponse)
@@ -159,6 +171,7 @@ type AuthorizationServiceServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	ListRole(context.Context, *ListRoleRequest) (*ListRoleResponse, error)
+	GetRoleByCode(context.Context, *GetRoleByCodeRequest) (*GetRoleByCodeResponse, error)
 	GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error)
 	mustEmbedUnimplementedAuthorizationServiceServer()
 }
@@ -193,6 +206,9 @@ func (UnimplementedAuthorizationServiceServer) UpdateRole(context.Context, *Upda
 }
 func (UnimplementedAuthorizationServiceServer) ListRole(context.Context, *ListRoleRequest) (*ListRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRole not implemented")
+}
+func (UnimplementedAuthorizationServiceServer) GetRoleByCode(context.Context, *GetRoleByCodeRequest) (*GetRoleByCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRoleByCode not implemented")
 }
 func (UnimplementedAuthorizationServiceServer) GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRole not implemented")
@@ -362,6 +378,24 @@ func _AuthorizationService_ListRole_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthorizationService_GetRoleByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoleByCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorizationServiceServer).GetRoleByCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthorizationService_GetRoleByCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorizationServiceServer).GetRoleByCode(ctx, req.(*GetRoleByCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthorizationService_GetRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRoleRequest)
 	if err := dec(in); err != nil {
@@ -418,6 +452,10 @@ var AuthorizationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListRole",
 			Handler:    _AuthorizationService_ListRole_Handler,
+		},
+		{
+			MethodName: "GetRoleByCode",
+			Handler:    _AuthorizationService_GetRoleByCode_Handler,
 		},
 		{
 			MethodName: "GetRole",

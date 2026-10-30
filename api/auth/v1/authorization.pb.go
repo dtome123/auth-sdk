@@ -680,10 +680,11 @@ func (x *ListPermissionsResponse) GetPermissions() []*Permission {
 
 type CreateRoleRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ResourceActions []*ResourceAction      `protobuf:"bytes,2,rep,name=resource_actions,json=resourceActions,proto3" json:"resource_actions,omitempty"`
-	Description     string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Scope           map[string]string      `protobuf:"bytes,4,rep,name=scope,proto3" json:"scope,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Code            string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ResourceActions []*ResourceAction      `protobuf:"bytes,3,rep,name=resource_actions,json=resourceActions,proto3" json:"resource_actions,omitempty"`
+	Description     string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Scope           map[string]string      `protobuf:"bytes,5,rep,name=scope,proto3" json:"scope,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -716,6 +717,13 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
 	return file_auth_v1_authorization_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CreateRoleRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
 }
 
 func (x *CreateRoleRequest) GetName() string {
@@ -1270,6 +1278,94 @@ func (x *GetRoleResponse) GetRole() *Role {
 	return nil
 }
 
+type GetRoleByCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRoleByCodeRequest) Reset() {
+	*x = GetRoleByCodeRequest{}
+	mi := &file_auth_v1_authorization_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRoleByCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRoleByCodeRequest) ProtoMessage() {}
+
+func (x *GetRoleByCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_authorization_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRoleByCodeRequest.ProtoReflect.Descriptor instead.
+func (*GetRoleByCodeRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_authorization_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetRoleByCodeRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type GetRoleByCodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Role          *Role                  `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRoleByCodeResponse) Reset() {
+	*x = GetRoleByCodeResponse{}
+	mi := &file_auth_v1_authorization_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRoleByCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRoleByCodeResponse) ProtoMessage() {}
+
+func (x *GetRoleByCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_authorization_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRoleByCodeResponse.ProtoReflect.Descriptor instead.
+func (*GetRoleByCodeResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_authorization_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetRoleByCodeResponse) GetRole() *Role {
+	if x != nil {
+		return x.Role
+	}
+	return nil
+}
+
 type ListPermissionsRequest_Filter struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Keyword       string                 `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
@@ -1280,7 +1376,7 @@ type ListPermissionsRequest_Filter struct {
 
 func (x *ListPermissionsRequest_Filter) Reset() {
 	*x = ListPermissionsRequest_Filter{}
-	mi := &file_auth_v1_authorization_proto_msgTypes[25]
+	mi := &file_auth_v1_authorization_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1292,7 +1388,7 @@ func (x *ListPermissionsRequest_Filter) String() string {
 func (*ListPermissionsRequest_Filter) ProtoMessage() {}
 
 func (x *ListPermissionsRequest_Filter) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_authorization_proto_msgTypes[25]
+	mi := &file_auth_v1_authorization_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1332,7 +1428,7 @@ type ListRoleRequest_Filter struct {
 
 func (x *ListRoleRequest_Filter) Reset() {
 	*x = ListRoleRequest_Filter{}
-	mi := &file_auth_v1_authorization_proto_msgTypes[28]
+	mi := &file_auth_v1_authorization_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1344,7 +1440,7 @@ func (x *ListRoleRequest_Filter) String() string {
 func (*ListRoleRequest_Filter) ProtoMessage() {}
 
 func (x *ListRoleRequest_Filter) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_authorization_proto_msgTypes[28]
+	mi := &file_auth_v1_authorization_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1425,12 +1521,13 @@ const file_auth_v1_authorization_proto_rawDesc = "" +
 	"\akeyword\x18\x02 \x01(\tR\akeyword\x12\x18\n" +
 	"\adomains\x18\x03 \x03(\tR\adomains\"P\n" +
 	"\x17ListPermissionsResponse\x125\n" +
-	"\vpermissions\x18\x01 \x03(\v2\x13.auth.v1.PermissionR\vpermissions\"\x84\x02\n" +
+	"\vpermissions\x18\x01 \x03(\v2\x13.auth.v1.PermissionR\vpermissions\"\x98\x02\n" +
 	"\x11CreateRoleRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12B\n" +
-	"\x10resource_actions\x18\x02 \x03(\v2\x17.auth.v1.ResourceActionR\x0fresourceActions\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12;\n" +
-	"\x05scope\x18\x04 \x03(\v2%.auth.v1.CreateRoleRequest.ScopeEntryR\x05scope\x1a8\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12B\n" +
+	"\x10resource_actions\x18\x03 \x03(\v2\x17.auth.v1.ResourceActionR\x0fresourceActions\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12;\n" +
+	"\x05scope\x18\x05 \x03(\v2%.auth.v1.CreateRoleRequest.ScopeEntryR\x05scope\x1a8\n" +
 	"\n" +
 	"ScopeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -1476,12 +1573,16 @@ const file_auth_v1_authorization_proto_rawDesc = "" +
 	"\x0eGetRoleRequest\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\"4\n" +
 	"\x0fGetRoleResponse\x12!\n" +
+	"\x04role\x18\x01 \x01(\v2\r.auth.v1.RoleR\x04role\"*\n" +
+	"\x14GetRoleByCodeRequest\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\":\n" +
+	"\x15GetRoleByCodeResponse\x12!\n" +
 	"\x04role\x18\x01 \x01(\v2\r.auth.v1.RoleR\x04role*d\n" +
 	"\n" +
 	"RouteScope\x12\x1b\n" +
 	"\x17ROUTE_SCOPE_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19ROUTE_SCOPE_AUTHENTICATED\x10\x01\x12\x1a\n" +
-	"\x16ROUTE_SCOPE_AUTHORIZED\x10\x022\xe0\x05\n" +
+	"\x16ROUTE_SCOPE_AUTHORIZED\x10\x022\xb0\x06\n" +
 	"\x14AuthorizationService\x12]\n" +
 	"\x12GetUserPermissions\x12\".auth.v1.GetUserPermissionsRequest\x1a#.auth.v1.GetUserPermissionsResponse\x12T\n" +
 	"\x0fListPermissions\x12\x1f.auth.v1.ListPermissionsRequest\x1a .auth.v1.ListPermissionsResponse\x12]\n" +
@@ -1492,7 +1593,8 @@ const file_auth_v1_authorization_proto_rawDesc = "" +
 	"CreateRole\x12\x1a.auth.v1.CreateRoleRequest\x1a\x1b.auth.v1.CreateRoleResponse\x12E\n" +
 	"\n" +
 	"UpdateRole\x12\x1a.auth.v1.UpdateRoleRequest\x1a\x1b.auth.v1.UpdateRoleResponse\x12?\n" +
-	"\bListRole\x12\x18.auth.v1.ListRoleRequest\x1a\x19.auth.v1.ListRoleResponse\x12<\n" +
+	"\bListRole\x12\x18.auth.v1.ListRoleRequest\x1a\x19.auth.v1.ListRoleResponse\x12N\n" +
+	"\rGetRoleByCode\x12\x1d.auth.v1.GetRoleByCodeRequest\x1a\x1e.auth.v1.GetRoleByCodeResponse\x12<\n" +
 	"\aGetRole\x12\x17.auth.v1.GetRoleRequest\x1a\x18.auth.v1.GetRoleResponseB\vZ\t./v1;authb\x06proto3"
 
 var (
@@ -1508,7 +1610,7 @@ func file_auth_v1_authorization_proto_rawDescGZIP() []byte {
 }
 
 var file_auth_v1_authorization_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_auth_v1_authorization_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_auth_v1_authorization_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_auth_v1_authorization_proto_goTypes = []any{
 	(RouteScope)(0),                       // 0: auth.v1.RouteScope
 	(*ResourceAction)(nil),                // 1: auth.v1.ResourceAction
@@ -1535,57 +1637,62 @@ var file_auth_v1_authorization_proto_goTypes = []any{
 	(*ListRoleResponse)(nil),              // 22: auth.v1.ListRoleResponse
 	(*GetRoleRequest)(nil),                // 23: auth.v1.GetRoleRequest
 	(*GetRoleResponse)(nil),               // 24: auth.v1.GetRoleResponse
-	nil,                                   // 25: auth.v1.Role.ScopeEntry
-	(*ListPermissionsRequest_Filter)(nil), // 26: auth.v1.ListPermissionsRequest.Filter
-	nil,                                   // 27: auth.v1.CreateRoleRequest.ScopeEntry
-	nil,                                   // 28: auth.v1.UpdateRoleRequest.ScopeEntry
-	(*ListRoleRequest_Filter)(nil),        // 29: auth.v1.ListRoleRequest.Filter
-	nil,                                   // 30: auth.v1.ListRoleRequest.Filter.ScopeEntry
+	(*GetRoleByCodeRequest)(nil),          // 25: auth.v1.GetRoleByCodeRequest
+	(*GetRoleByCodeResponse)(nil),         // 26: auth.v1.GetRoleByCodeResponse
+	nil,                                   // 27: auth.v1.Role.ScopeEntry
+	(*ListPermissionsRequest_Filter)(nil), // 28: auth.v1.ListPermissionsRequest.Filter
+	nil,                                   // 29: auth.v1.CreateRoleRequest.ScopeEntry
+	nil,                                   // 30: auth.v1.UpdateRoleRequest.ScopeEntry
+	(*ListRoleRequest_Filter)(nil),        // 31: auth.v1.ListRoleRequest.Filter
+	nil,                                   // 32: auth.v1.ListRoleRequest.Filter.ScopeEntry
 }
 var file_auth_v1_authorization_proto_depIdxs = []int32{
 	2,  // 0: auth.v1.Role.permissions:type_name -> auth.v1.Permission
-	25, // 1: auth.v1.Role.scope:type_name -> auth.v1.Role.ScopeEntry
+	27, // 1: auth.v1.Role.scope:type_name -> auth.v1.Role.ScopeEntry
 	2,  // 2: auth.v1.MigratePermissionsRequest.permissions:type_name -> auth.v1.Permission
 	3,  // 3: auth.v1.MigratePermissionsRequest.roles:type_name -> auth.v1.Role
 	2,  // 4: auth.v1.GetUserPermissionsResponse.permissions:type_name -> auth.v1.Permission
 	4,  // 5: auth.v1.ListPermissionsRequest.pagination:type_name -> auth.v1.PageRequest
-	26, // 6: auth.v1.ListPermissionsRequest.filter:type_name -> auth.v1.ListPermissionsRequest.Filter
+	28, // 6: auth.v1.ListPermissionsRequest.filter:type_name -> auth.v1.ListPermissionsRequest.Filter
 	2,  // 7: auth.v1.ListPermissionsResponse.permissions:type_name -> auth.v1.Permission
 	1,  // 8: auth.v1.CreateRoleRequest.resource_actions:type_name -> auth.v1.ResourceAction
-	27, // 9: auth.v1.CreateRoleRequest.scope:type_name -> auth.v1.CreateRoleRequest.ScopeEntry
+	29, // 9: auth.v1.CreateRoleRequest.scope:type_name -> auth.v1.CreateRoleRequest.ScopeEntry
 	1,  // 10: auth.v1.UpdateRoleRequest.resource_actions:type_name -> auth.v1.ResourceAction
-	28, // 11: auth.v1.UpdateRoleRequest.scope:type_name -> auth.v1.UpdateRoleRequest.ScopeEntry
+	30, // 11: auth.v1.UpdateRoleRequest.scope:type_name -> auth.v1.UpdateRoleRequest.ScopeEntry
 	3,  // 12: auth.v1.GetUserRolesResponse.roles:type_name -> auth.v1.Role
 	4,  // 13: auth.v1.ListRoleRequest.pagination:type_name -> auth.v1.PageRequest
-	29, // 14: auth.v1.ListRoleRequest.filter:type_name -> auth.v1.ListRoleRequest.Filter
+	31, // 14: auth.v1.ListRoleRequest.filter:type_name -> auth.v1.ListRoleRequest.Filter
 	3,  // 15: auth.v1.ListRoleResponse.roles:type_name -> auth.v1.Role
 	5,  // 16: auth.v1.ListRoleResponse.pagination:type_name -> auth.v1.PageResponse
 	3,  // 17: auth.v1.GetRoleResponse.role:type_name -> auth.v1.Role
-	30, // 18: auth.v1.ListRoleRequest.Filter.scope:type_name -> auth.v1.ListRoleRequest.Filter.ScopeEntry
-	6,  // 19: auth.v1.ListRoleRequest.Filter.ScopeEntry.value:type_name -> auth.v1.StringList
-	9,  // 20: auth.v1.AuthorizationService.GetUserPermissions:input_type -> auth.v1.GetUserPermissionsRequest
-	11, // 21: auth.v1.AuthorizationService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
-	7,  // 22: auth.v1.AuthorizationService.MigratePermissions:input_type -> auth.v1.MigratePermissionsRequest
-	17, // 23: auth.v1.AuthorizationService.AssignRolesToUser:input_type -> auth.v1.AssignRolesToUserRequest
-	19, // 24: auth.v1.AuthorizationService.GetUserRoles:input_type -> auth.v1.GetUserRolesRequest
-	13, // 25: auth.v1.AuthorizationService.CreateRole:input_type -> auth.v1.CreateRoleRequest
-	15, // 26: auth.v1.AuthorizationService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
-	21, // 27: auth.v1.AuthorizationService.ListRole:input_type -> auth.v1.ListRoleRequest
-	23, // 28: auth.v1.AuthorizationService.GetRole:input_type -> auth.v1.GetRoleRequest
-	10, // 29: auth.v1.AuthorizationService.GetUserPermissions:output_type -> auth.v1.GetUserPermissionsResponse
-	12, // 30: auth.v1.AuthorizationService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
-	8,  // 31: auth.v1.AuthorizationService.MigratePermissions:output_type -> auth.v1.MigratePermissionsResponse
-	18, // 32: auth.v1.AuthorizationService.AssignRolesToUser:output_type -> auth.v1.AssignRolesToUserResponse
-	20, // 33: auth.v1.AuthorizationService.GetUserRoles:output_type -> auth.v1.GetUserRolesResponse
-	14, // 34: auth.v1.AuthorizationService.CreateRole:output_type -> auth.v1.CreateRoleResponse
-	16, // 35: auth.v1.AuthorizationService.UpdateRole:output_type -> auth.v1.UpdateRoleResponse
-	22, // 36: auth.v1.AuthorizationService.ListRole:output_type -> auth.v1.ListRoleResponse
-	24, // 37: auth.v1.AuthorizationService.GetRole:output_type -> auth.v1.GetRoleResponse
-	29, // [29:38] is the sub-list for method output_type
-	20, // [20:29] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	3,  // 18: auth.v1.GetRoleByCodeResponse.role:type_name -> auth.v1.Role
+	32, // 19: auth.v1.ListRoleRequest.Filter.scope:type_name -> auth.v1.ListRoleRequest.Filter.ScopeEntry
+	6,  // 20: auth.v1.ListRoleRequest.Filter.ScopeEntry.value:type_name -> auth.v1.StringList
+	9,  // 21: auth.v1.AuthorizationService.GetUserPermissions:input_type -> auth.v1.GetUserPermissionsRequest
+	11, // 22: auth.v1.AuthorizationService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
+	7,  // 23: auth.v1.AuthorizationService.MigratePermissions:input_type -> auth.v1.MigratePermissionsRequest
+	17, // 24: auth.v1.AuthorizationService.AssignRolesToUser:input_type -> auth.v1.AssignRolesToUserRequest
+	19, // 25: auth.v1.AuthorizationService.GetUserRoles:input_type -> auth.v1.GetUserRolesRequest
+	13, // 26: auth.v1.AuthorizationService.CreateRole:input_type -> auth.v1.CreateRoleRequest
+	15, // 27: auth.v1.AuthorizationService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
+	21, // 28: auth.v1.AuthorizationService.ListRole:input_type -> auth.v1.ListRoleRequest
+	25, // 29: auth.v1.AuthorizationService.GetRoleByCode:input_type -> auth.v1.GetRoleByCodeRequest
+	23, // 30: auth.v1.AuthorizationService.GetRole:input_type -> auth.v1.GetRoleRequest
+	10, // 31: auth.v1.AuthorizationService.GetUserPermissions:output_type -> auth.v1.GetUserPermissionsResponse
+	12, // 32: auth.v1.AuthorizationService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
+	8,  // 33: auth.v1.AuthorizationService.MigratePermissions:output_type -> auth.v1.MigratePermissionsResponse
+	18, // 34: auth.v1.AuthorizationService.AssignRolesToUser:output_type -> auth.v1.AssignRolesToUserResponse
+	20, // 35: auth.v1.AuthorizationService.GetUserRoles:output_type -> auth.v1.GetUserRolesResponse
+	14, // 36: auth.v1.AuthorizationService.CreateRole:output_type -> auth.v1.CreateRoleResponse
+	16, // 37: auth.v1.AuthorizationService.UpdateRole:output_type -> auth.v1.UpdateRoleResponse
+	22, // 38: auth.v1.AuthorizationService.ListRole:output_type -> auth.v1.ListRoleResponse
+	26, // 39: auth.v1.AuthorizationService.GetRoleByCode:output_type -> auth.v1.GetRoleByCodeResponse
+	24, // 40: auth.v1.AuthorizationService.GetRole:output_type -> auth.v1.GetRoleResponse
+	31, // [31:41] is the sub-list for method output_type
+	21, // [21:31] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_authorization_proto_init() }
@@ -1599,7 +1706,7 @@ func file_auth_v1_authorization_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_authorization_proto_rawDesc), len(file_auth_v1_authorization_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   30,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
