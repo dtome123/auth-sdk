@@ -42,6 +42,7 @@ message Role {
   string              name        = 2;
   repeated Permission permissions = 3;
   map<string, string> scope       = 4;
+  string              code        = 5;
 }
 
 enum RouteScope {
