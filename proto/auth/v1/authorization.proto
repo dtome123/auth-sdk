@@ -27,6 +27,7 @@ service AuthorizationService {
 message ResourceAction {
   string          permission_id = 1;
   repeated string actions       = 2;
+  repeated string scopes        = 3;
 }
 
 message Permission {

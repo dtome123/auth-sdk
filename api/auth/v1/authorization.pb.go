@@ -74,6 +74,7 @@ type ResourceAction struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PermissionId  string                 `protobuf:"bytes,1,opt,name=permission_id,json=permissionId,proto3" json:"permission_id,omitempty"`
 	Actions       []string               `protobuf:"bytes,2,rep,name=actions,proto3" json:"actions,omitempty"`
+	Scopes        []string               `protobuf:"bytes,3,rep,name=scopes,proto3" json:"scopes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,6 +119,13 @@ func (x *ResourceAction) GetPermissionId() string {
 func (x *ResourceAction) GetActions() []string {
 	if x != nil {
 		return x.Actions
+	}
+	return nil
+}
+
+func (x *ResourceAction) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
 	}
 	return nil
 }
@@ -1490,10 +1498,11 @@ var File_auth_v1_authorization_proto protoreflect.FileDescriptor
 
 const file_auth_v1_authorization_proto_rawDesc = "" +
 	"\n" +
-	"\x1bauth/v1/authorization.proto\x12\aauth.v1\"O\n" +
+	"\x1bauth/v1/authorization.proto\x12\aauth.v1\"g\n" +
 	"\x0eResourceAction\x12#\n" +
 	"\rpermission_id\x18\x01 \x01(\tR\fpermissionId\x12\x18\n" +
-	"\aactions\x18\x02 \x03(\tR\aactions\"\x96\x01\n" +
+	"\aactions\x18\x02 \x03(\tR\aactions\x12\x16\n" +
+	"\x06scopes\x18\x03 \x03(\tR\x06scopes\"\x96\x01\n" +
 	"\n" +
 	"Permission\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
