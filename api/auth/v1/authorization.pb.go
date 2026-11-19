@@ -129,6 +129,7 @@ type Permission struct {
 	Domain        string                 `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 	Resource      string                 `protobuf:"bytes,4,opt,name=resource,proto3" json:"resource,omitempty"`
 	Actions       []string               `protobuf:"bytes,5,rep,name=actions,proto3" json:"actions,omitempty"`
+	Scopes        []string               `protobuf:"bytes,6,rep,name=scopes,proto3" json:"scopes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -198,12 +199,20 @@ func (x *Permission) GetActions() []string {
 	return nil
 }
 
+func (x *Permission) GetScopes() []string {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
 type Role struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Permissions   []*Permission          `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	Scope         map[string]string      `protobuf:"bytes,4,rep,name=scope,proto3" json:"scope,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Code          string                 `protobuf:"bytes,5,opt,name=code,proto3" json:"code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -264,6 +273,13 @@ func (x *Role) GetScope() map[string]string {
 		return x.Scope
 	}
 	return nil
+}
+
+func (x *Role) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
 }
 
 type PageRequest struct {
@@ -1477,19 +1493,21 @@ const file_auth_v1_authorization_proto_rawDesc = "" +
 	"\x1bauth/v1/authorization.proto\x12\aauth.v1\"O\n" +
 	"\x0eResourceAction\x12#\n" +
 	"\rpermission_id\x18\x01 \x01(\tR\fpermissionId\x12\x18\n" +
-	"\aactions\x18\x02 \x03(\tR\aactions\"~\n" +
+	"\aactions\x18\x02 \x03(\tR\aactions\"\x96\x01\n" +
 	"\n" +
 	"Permission\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
 	"\x06domain\x18\x03 \x01(\tR\x06domain\x12\x1a\n" +
 	"\bresource\x18\x04 \x01(\tR\bresource\x12\x18\n" +
-	"\aactions\x18\x05 \x03(\tR\aactions\"\xcb\x01\n" +
+	"\aactions\x18\x05 \x03(\tR\aactions\x12\x16\n" +
+	"\x06scopes\x18\x06 \x03(\tR\x06scopes\"\xdf\x01\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x125\n" +
 	"\vpermissions\x18\x03 \x03(\v2\x13.auth.v1.PermissionR\vpermissions\x12.\n" +
-	"\x05scope\x18\x04 \x03(\v2\x18.auth.v1.Role.ScopeEntryR\x05scope\x1a8\n" +
+	"\x05scope\x18\x04 \x03(\v2\x18.auth.v1.Role.ScopeEntryR\x05scope\x12\x12\n" +
+	"\x04code\x18\x05 \x01(\tR\x04code\x1a8\n" +
 	"\n" +
 	"ScopeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +

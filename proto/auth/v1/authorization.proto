@@ -35,6 +35,7 @@ message Permission {
   string          domain   = 3;
   string          resource = 4;
   repeated string actions  = 5;
+  repeated string scopes   = 6;
 }
 
 message Role {
