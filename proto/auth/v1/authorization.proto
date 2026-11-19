@@ -40,11 +40,11 @@ message Permission {
 }
 
 message Role {
-  string              id          = 1;
-  string              name        = 2;
-  repeated Permission permissions = 3;
-  map<string, string> scope       = 4;
-  string              code        = 5;
+  string                  id               = 1;
+  string                  name             = 2;
+  repeated ResourceAction resource_actions = 3;
+  map<string, string>     scope            = 4;
+  string                  code             = 5;
 }
 
 enum RouteScope {

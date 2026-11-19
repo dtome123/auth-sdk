@@ -215,14 +215,14 @@ func (x *Permission) GetScopes() []string {
 }
 
 type Role struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Permissions   []*Permission          `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty"`
-	Scope         map[string]string      `protobuf:"bytes,4,rep,name=scope,proto3" json:"scope,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Code          string                 `protobuf:"bytes,5,opt,name=code,proto3" json:"code,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ResourceActions []*ResourceAction      `protobuf:"bytes,3,rep,name=resource_actions,json=resourceActions,proto3" json:"resource_actions,omitempty"`
+	Scope           map[string]string      `protobuf:"bytes,4,rep,name=scope,proto3" json:"scope,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Code            string                 `protobuf:"bytes,5,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Role) Reset() {
@@ -269,9 +269,9 @@ func (x *Role) GetName() string {
 	return ""
 }
 
-func (x *Role) GetPermissions() []*Permission {
+func (x *Role) GetResourceActions() []*ResourceAction {
 	if x != nil {
-		return x.Permissions
+		return x.ResourceActions
 	}
 	return nil
 }
@@ -1518,11 +1518,11 @@ const file_auth_v1_authorization_proto_rawDesc = "" +
 	"\x06domain\x18\x03 \x01(\tR\x06domain\x12\x1a\n" +
 	"\bresource\x18\x04 \x01(\tR\bresource\x12\x18\n" +
 	"\aactions\x18\x05 \x03(\tR\aactions\x12\x16\n" +
-	"\x06scopes\x18\x06 \x03(\tR\x06scopes\"\xdf\x01\n" +
+	"\x06scopes\x18\x06 \x03(\tR\x06scopes\"\xec\x01\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x125\n" +
-	"\vpermissions\x18\x03 \x03(\v2\x13.auth.v1.PermissionR\vpermissions\x12.\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12B\n" +
+	"\x10resource_actions\x18\x03 \x03(\v2\x17.auth.v1.ResourceActionR\x0fresourceActions\x12.\n" +
 	"\x05scope\x18\x04 \x03(\v2\x18.auth.v1.Role.ScopeEntryR\x05scope\x12\x12\n" +
 	"\x04code\x18\x05 \x01(\tR\x04code\x1a8\n" +
 	"\n" +
@@ -1688,7 +1688,7 @@ var file_auth_v1_authorization_proto_goTypes = []any{
 	nil,                                   // 33: auth.v1.GetRoleByCodeRequest.ScopeEntry
 }
 var file_auth_v1_authorization_proto_depIdxs = []int32{
-	2,  // 0: auth.v1.Role.permissions:type_name -> auth.v1.Permission
+	1,  // 0: auth.v1.Role.resource_actions:type_name -> auth.v1.ResourceAction
 	27, // 1: auth.v1.Role.scope:type_name -> auth.v1.Role.ScopeEntry
 	2,  // 2: auth.v1.MigratePermissionsRequest.permissions:type_name -> auth.v1.Permission
 	3,  // 3: auth.v1.MigratePermissionsRequest.roles:type_name -> auth.v1.Role
