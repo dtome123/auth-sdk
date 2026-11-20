@@ -137,7 +137,7 @@ type Permission struct {
 	Domain        string                 `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 	Resource      string                 `protobuf:"bytes,4,opt,name=resource,proto3" json:"resource,omitempty"`
 	Actions       []string               `protobuf:"bytes,5,rep,name=actions,proto3" json:"actions,omitempty"`
-	Scopes        map[string]string      `protobuf:"bytes,6,rep,name=scopes,proto3" json:"scopes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Scopes        map[string]*StringList `protobuf:"bytes,6,rep,name=scopes,proto3" json:"scopes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -207,7 +207,7 @@ func (x *Permission) GetActions() []string {
 	return nil
 }
 
-func (x *Permission) GetScopes() map[string]string {
+func (x *Permission) GetScopes() map[string]*StringList {
 	if x != nil {
 		return x.Scopes
 	}
@@ -1510,7 +1510,7 @@ const file_auth_v1_authorization_proto_rawDesc = "" +
 	"\x0eResourceAction\x12#\n" +
 	"\rpermission_id\x18\x01 \x01(\tR\fpermissionId\x12\x18\n" +
 	"\aactions\x18\x02 \x03(\tR\aactions\x12\x16\n" +
-	"\x06scopes\x18\x03 \x03(\tR\x06scopes\"\xf2\x01\n" +
+	"\x06scopes\x18\x03 \x03(\tR\x06scopes\"\x87\x02\n" +
 	"\n" +
 	"Permission\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -1518,10 +1518,10 @@ const file_auth_v1_authorization_proto_rawDesc = "" +
 	"\x06domain\x18\x03 \x01(\tR\x06domain\x12\x1a\n" +
 	"\bresource\x18\x04 \x01(\tR\bresource\x12\x18\n" +
 	"\aactions\x18\x05 \x03(\tR\aactions\x127\n" +
-	"\x06scopes\x18\x06 \x03(\v2\x1f.auth.v1.Permission.ScopesEntryR\x06scopes\x1a9\n" +
+	"\x06scopes\x18\x06 \x03(\v2\x1f.auth.v1.Permission.ScopesEntryR\x06scopes\x1aN\n" +
 	"\vScopesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xec\x01\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12)\n" +
+	"\x05value\x18\x02 \x01(\v2\x13.auth.v1.StringListR\x05value:\x028\x01\"\xec\x01\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12B\n" +
@@ -1713,34 +1713,35 @@ var file_auth_v1_authorization_proto_depIdxs = []int32{
 	3,  // 18: auth.v1.GetRoleResponse.role:type_name -> auth.v1.Role
 	34, // 19: auth.v1.GetRoleByCodeRequest.scope:type_name -> auth.v1.GetRoleByCodeRequest.ScopeEntry
 	3,  // 20: auth.v1.GetRoleByCodeResponse.role:type_name -> auth.v1.Role
-	33, // 21: auth.v1.ListRoleRequest.Filter.scope:type_name -> auth.v1.ListRoleRequest.Filter.ScopeEntry
-	6,  // 22: auth.v1.ListRoleRequest.Filter.ScopeEntry.value:type_name -> auth.v1.StringList
-	6,  // 23: auth.v1.GetRoleByCodeRequest.ScopeEntry.value:type_name -> auth.v1.StringList
-	9,  // 24: auth.v1.AuthorizationService.GetUserPermissions:input_type -> auth.v1.GetUserPermissionsRequest
-	11, // 25: auth.v1.AuthorizationService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
-	7,  // 26: auth.v1.AuthorizationService.MigratePermissions:input_type -> auth.v1.MigratePermissionsRequest
-	17, // 27: auth.v1.AuthorizationService.AssignRolesToUser:input_type -> auth.v1.AssignRolesToUserRequest
-	19, // 28: auth.v1.AuthorizationService.GetUserRoles:input_type -> auth.v1.GetUserRolesRequest
-	13, // 29: auth.v1.AuthorizationService.CreateRole:input_type -> auth.v1.CreateRoleRequest
-	15, // 30: auth.v1.AuthorizationService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
-	21, // 31: auth.v1.AuthorizationService.ListRole:input_type -> auth.v1.ListRoleRequest
-	25, // 32: auth.v1.AuthorizationService.GetRoleByCode:input_type -> auth.v1.GetRoleByCodeRequest
-	23, // 33: auth.v1.AuthorizationService.GetRole:input_type -> auth.v1.GetRoleRequest
-	10, // 34: auth.v1.AuthorizationService.GetUserPermissions:output_type -> auth.v1.GetUserPermissionsResponse
-	12, // 35: auth.v1.AuthorizationService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
-	8,  // 36: auth.v1.AuthorizationService.MigratePermissions:output_type -> auth.v1.MigratePermissionsResponse
-	18, // 37: auth.v1.AuthorizationService.AssignRolesToUser:output_type -> auth.v1.AssignRolesToUserResponse
-	20, // 38: auth.v1.AuthorizationService.GetUserRoles:output_type -> auth.v1.GetUserRolesResponse
-	14, // 39: auth.v1.AuthorizationService.CreateRole:output_type -> auth.v1.CreateRoleResponse
-	16, // 40: auth.v1.AuthorizationService.UpdateRole:output_type -> auth.v1.UpdateRoleResponse
-	22, // 41: auth.v1.AuthorizationService.ListRole:output_type -> auth.v1.ListRoleResponse
-	26, // 42: auth.v1.AuthorizationService.GetRoleByCode:output_type -> auth.v1.GetRoleByCodeResponse
-	24, // 43: auth.v1.AuthorizationService.GetRole:output_type -> auth.v1.GetRoleResponse
-	34, // [34:44] is the sub-list for method output_type
-	24, // [24:34] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	6,  // 21: auth.v1.Permission.ScopesEntry.value:type_name -> auth.v1.StringList
+	33, // 22: auth.v1.ListRoleRequest.Filter.scope:type_name -> auth.v1.ListRoleRequest.Filter.ScopeEntry
+	6,  // 23: auth.v1.ListRoleRequest.Filter.ScopeEntry.value:type_name -> auth.v1.StringList
+	6,  // 24: auth.v1.GetRoleByCodeRequest.ScopeEntry.value:type_name -> auth.v1.StringList
+	9,  // 25: auth.v1.AuthorizationService.GetUserPermissions:input_type -> auth.v1.GetUserPermissionsRequest
+	11, // 26: auth.v1.AuthorizationService.ListPermissions:input_type -> auth.v1.ListPermissionsRequest
+	7,  // 27: auth.v1.AuthorizationService.MigratePermissions:input_type -> auth.v1.MigratePermissionsRequest
+	17, // 28: auth.v1.AuthorizationService.AssignRolesToUser:input_type -> auth.v1.AssignRolesToUserRequest
+	19, // 29: auth.v1.AuthorizationService.GetUserRoles:input_type -> auth.v1.GetUserRolesRequest
+	13, // 30: auth.v1.AuthorizationService.CreateRole:input_type -> auth.v1.CreateRoleRequest
+	15, // 31: auth.v1.AuthorizationService.UpdateRole:input_type -> auth.v1.UpdateRoleRequest
+	21, // 32: auth.v1.AuthorizationService.ListRole:input_type -> auth.v1.ListRoleRequest
+	25, // 33: auth.v1.AuthorizationService.GetRoleByCode:input_type -> auth.v1.GetRoleByCodeRequest
+	23, // 34: auth.v1.AuthorizationService.GetRole:input_type -> auth.v1.GetRoleRequest
+	10, // 35: auth.v1.AuthorizationService.GetUserPermissions:output_type -> auth.v1.GetUserPermissionsResponse
+	12, // 36: auth.v1.AuthorizationService.ListPermissions:output_type -> auth.v1.ListPermissionsResponse
+	8,  // 37: auth.v1.AuthorizationService.MigratePermissions:output_type -> auth.v1.MigratePermissionsResponse
+	18, // 38: auth.v1.AuthorizationService.AssignRolesToUser:output_type -> auth.v1.AssignRolesToUserResponse
+	20, // 39: auth.v1.AuthorizationService.GetUserRoles:output_type -> auth.v1.GetUserRolesResponse
+	14, // 40: auth.v1.AuthorizationService.CreateRole:output_type -> auth.v1.CreateRoleResponse
+	16, // 41: auth.v1.AuthorizationService.UpdateRole:output_type -> auth.v1.UpdateRoleResponse
+	22, // 42: auth.v1.AuthorizationService.ListRole:output_type -> auth.v1.ListRoleResponse
+	26, // 43: auth.v1.AuthorizationService.GetRoleByCode:output_type -> auth.v1.GetRoleByCodeResponse
+	24, // 44: auth.v1.AuthorizationService.GetRole:output_type -> auth.v1.GetRoleResponse
+	35, // [35:45] is the sub-list for method output_type
+	25, // [25:35] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_authorization_proto_init() }
