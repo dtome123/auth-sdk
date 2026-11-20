@@ -77,8 +77,9 @@ message GetUserPermissionsResponse { repeated Permission permissions = 1; }
 
 message ListPermissionsRequest {
   message Filter {
-    string          keyword = 2;
-    repeated string domains = 3;
+    string                  keyword = 1;
+    repeated string         domains = 2;
+    map<string, StringList> scope   = 3;
   }
   PageRequest pagination = 1;
   Filter      filter     = 2;
