@@ -31,12 +31,12 @@ message ResourceAction {
 }
 
 message Permission {
-  string          id       = 1;
-  string          name     = 2;
-  string          domain   = 3;
-  string          resource = 4;
-  repeated string actions  = 5;
-  repeated string scopes   = 6;
+  string              id       = 1;
+  string              name     = 2;
+  string              domain   = 3;
+  string              resource = 4;
+  repeated string     actions  = 5;
+  map<string, string> scopes   = 6;
 }
 
 message Role {
